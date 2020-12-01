@@ -1,9 +1,3 @@
-/*
-const NUMS: [i32; 6] = [
-
-];
-*/
-
 use aoc2020::util;
 
 fn read_ints(path: &str) -> Vec<i32> {
