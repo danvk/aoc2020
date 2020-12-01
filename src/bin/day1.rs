@@ -24,8 +24,10 @@ fn main() {
 
   for num1 in nums.iter() {
     for num2 in nums.iter() {
-      if num1 + num2 == 2020 {
-        println!("{} * {} = {}", num1, num2, num1 * num2);
+      for num3 in nums.iter() {
+        if num1 + num2 + num3 == 2020 {
+          println!("{} * {} * {} = {}", num1, num2, num3, num1 * num2 * num3);
+        }
       }
     }
   }
