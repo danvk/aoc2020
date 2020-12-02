@@ -1,7 +1,8 @@
 #[macro_use] extern crate lazy_static;
-use std::collections::HashMap;
-
+// use std::collections::HashMap;
+use std::env;
 use regex::Regex;
+
 use aoc2020::util;
 
 struct Password {
@@ -27,14 +28,14 @@ fn read_password(path: &str) -> Password {
   Password{password, policy_char, min, max}
 }
 
-fn count_letters(txt: &str) -> HashMap<char, u32> {
-  let mut counts = HashMap::new();
-  for c in txt.chars() {
-    *counts.entry(c).or_insert(0) += 1;
-  }
-
-  counts
-}
+// fn count_letters(txt: &str) -> HashMap<char, u32> {
+//   let mut counts = HashMap::new();
+//   for c in txt.chars() {
+//     *counts.entry(c).or_insert(0) += 1;
+//   }
+//
+//   counts
+// }
 
 fn is_valid_password(pass: &Password) -> bool {
   let Password {min, max, policy_char, password} = pass;
@@ -77,5 +78,10 @@ fn process_file(path: &str) {
 }
 
 fn main() {
-  process_file("./inputs/day2.txt");
+  let args: Vec<String> = env::args().collect();
+  if args.len() != 2 {
+    panic!("Expected one argument, got {}: {:?}", args.len(), args);
+  }
+
+  process_file(&args[1]);
 }
