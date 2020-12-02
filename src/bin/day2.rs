@@ -14,7 +14,7 @@ struct Password {
 
 fn read_password(path: &str) -> Password {
   lazy_static! {
-    static ref RE: Regex = Regex::new("^(\\d+)-(\\d+) ([a-z]): ([a-z]+)$").unwrap();
+    static ref RE: Regex = Regex::new(r"^(\d+)-(\d+) ([a-z]): ([a-z]+)$").unwrap();
   }
   // vscode isn't able to follow along with the types for RE
   // let re: Regex = Regex::new("^(\\d+)-(\\d+): ([a-z]+)$").unwrap();
