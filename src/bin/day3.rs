@@ -31,10 +31,8 @@ fn read_forest(path: &str) -> Forest {
   }
 }
 
-fn process_file(path: &str) {
+fn process_file(path: &str, dx: usize, dy: usize) {
   let f = read_forest(path);
-  let dx = 3;
-  let dy = 1;
   let mut x = dx;
   let mut y = dy;
   let mut trees = 0;
@@ -56,9 +54,13 @@ fn process_file(path: &str) {
 
 fn main() {
   let args: Vec<String> = env::args().collect();
-  if args.len() != 2 {
+  if args.len() != 4 {
     panic!("Expected one argument, got {}: {:?}", args.len(), args);
   }
 
-  process_file(&args[1]);
+  let path = &args[1];
+  let dx = args[2].parse::<usize>().unwrap();
+  let dy = args[3].parse::<usize>().unwrap();
+
+  process_file(path, dx, dy);
 }
