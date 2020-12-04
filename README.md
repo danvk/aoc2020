@@ -1,5 +1,11 @@
 # Notes on Advent of Code 2020
 
+## Day 3 & 4
+
+Rust is feeling… kind of annoying! My usual procedure for fixing errors is throwing `.unwrap()`, `&`, `String::from()` and `into_iter()` into the expression until it works.
+
+It would be useful to find a Rust expert who's also doing the Advent of Code.
+
 ## Day 2
 
 First time using regexes in Rust. Overall it seems... mostly reasonable? I got thrown off by a few things:

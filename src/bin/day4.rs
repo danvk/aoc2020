@@ -3,14 +3,6 @@ use std::collections::HashMap;
 use regex::Regex;
 use aoc2020::util;
 
-// fn count_letters(txt: &str) -> HashMap<char, u32> {
-//   let mut counts = HashMap::new();
-//   for c in txt.chars() {
-//     *counts.entry(c).or_insert(0) += 1;
-//   }
-//   counts
-// }
-
 struct Passport {
   byr: String,
   iyr: String,
