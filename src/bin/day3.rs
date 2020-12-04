@@ -1,4 +1,6 @@
 use std::env;
+use std::fmt;
+
 use aoc2020::util;
 use util::read_lines;
 
@@ -12,6 +14,19 @@ struct Forest {
   width: usize,
   height: usize,
   cells: Vec<Vec<Cell>>
+}
+
+impl fmt::Display for Forest {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    let Forest { width, height, cells } = self;
+    let mut r = write!(f, "Width: {}, Height: {}\n", width, height);
+    for row in cells {
+      let cs: String = row.into_iter().map(|cell| if *cell == Cell::OPEN { '.' } else { '#' }).collect();
+
+      r = write!(f, "{}\n", cs);
+    }
+    r
+  }
 }
 
 fn read_forest_line(line: &str) -> Vec<Cell> {
@@ -33,6 +48,9 @@ fn read_forest(path: &str) -> Forest {
 
 fn process_file(path: &str, dx: usize, dy: usize) {
   let f = read_forest(path);
+
+  println!("Forest:\n{}", f);
+
   let mut x = dx;
   let mut y = dy;
   let mut trees = 0;
