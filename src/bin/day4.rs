@@ -1,3 +1,4 @@
+#[macro_use] extern crate lazy_static;
 use std::env;
 use std::collections::HashMap;
 use itertools::Itertools;
@@ -70,53 +71,33 @@ fn process_passport(text: &str) -> Option<Passport> {
 // pid (Passport ID) - a nine-digit number, including leading zeroes.
 // cid (Country ID) - ignored, missing or not.
 
+const ECLS: [&str; 7] = ["amb","blu","brn","gry","grn","hzl","oth"];
+
+lazy_static! {
+  static ref PID_RE: Regex = Regex::new(r"^[0-9]{9}$").unwrap();
+  static ref HCL_RE: Regex = Regex::new(r"^#[0-9a-f]{6}$").unwrap();
+  static ref HGT_RE: Regex = Regex::new(r"^(\d{2,3})(in|cm)$").unwrap();
+}
 
 fn validate_passport(pass: &Passport) -> bool {
-  let hcl_re = Regex::new(r"^#[0-9a-f]{6}$").unwrap();
-  let pid_re = Regex::new(r"^[0-9]{9}$").unwrap();
-  let ecl_re = Regex::new(r"^amb|blu|brn|gry|grn|hzl|oth$").unwrap();
-  let hgt_re = Regex::new(r"^(\d{2,3})(in|cm)$").unwrap();
 
-  if pass.byr.as_str() < "1920" || pass.byr.as_str() > "2002" {
-    println!("invalid byr: {}", pass.byr);
+  if
+    pass.byr.as_str() < "1920" || pass.byr.as_str() > "2002" ||
+    pass.iyr.as_str() < "2010" || pass.iyr.as_str() > "2020" ||
+    pass.eyr.as_str() < "2020" || pass.eyr.as_str() > "2030" ||
+    !HCL_RE.is_match(&pass.hcl) ||
+    !PID_RE.is_match(&pass.pid) ||
+    !ECLS.contains(&pass.ecl.as_str()) {
     return false;
   }
-  if pass.iyr.as_str() < "2010" || pass.iyr.as_str() > "2020" {
-    println!("invalid iyr: {}", pass.iyr);
-    return false;
-  }
-  if pass.eyr.as_str() < "2020" || pass.eyr.as_str() > "2030" {
-    println!("invalid eyr: {}", pass.eyr);
-    return false;
-  }
-  if !hcl_re.is_match(&pass.hcl) {
-    println!("invalid hcl: {}", pass.hcl);
-    return false;
-  }
-  if !pid_re.is_match(&pass.pid) {
-    println!("invalid pid: {}", pass.pid);
-    return false;
-  }
-  if !ecl_re.is_match(&pass.ecl) {
-    println!("invalid ecl: {}", pass.ecl);
-    return false;
-  }
-  match hgt_re.captures(&pass.hgt) {
+
+  match HGT_RE.captures(&pass.hgt) {
     None => { return false; }
     Some(caps) => {
       let val = caps[1].parse::<i32>().unwrap();
       let units = &caps[2];
-      if units == "in" {
-        //   If in, the number must be at least 59 and at most 76.
-        if val < 59 || val > 76 {
-          return false;
-        }
-      } else if units == "cm" {
-        //   If cm, the number must be at least 150 and at most 193.
-        if val < 150 || val > 193 {
-          return false;
-        }
-      } else {
+      if !((units == "cm" && (150..=193).contains(&val)) ||
+         (units == "in" && (59..=76).contains(&val))) {
         return false;
       }
     }
@@ -125,10 +106,25 @@ fn validate_passport(pass: &Passport) -> bool {
   true
 }
 
+/*
+fn chunks(path: &str) -> Vec<String> {
+  let x = util::read_lines(path).unwrap()
+  .into_iter()
+  .group_by(|line| line.unwrap() != "")
+  .into_iter()
+  .filter(|(k, _v)| *k)
+  .map(|(k, v)| v.into_iter().map(|v| v.unwrap()).join(" "))
+  .collect::<Vec<String>>();
+
+  x
+}
+*/
+
 fn process_file(path: &str) {
   let mut current = String::from("");
   let mut num_ok = 0;
-  for line_in in util::read_lines(path).unwrap() {
+  let lines = util::read_lines(path).unwrap();
+  for line_in in lines {
     let line = line_in.unwrap();
     if line == "" {
       if process_passport(&current).is_some() {

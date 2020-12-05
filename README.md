@@ -12,6 +12,14 @@ https://github.com/SamMorrowDrums/aoc2/blob/day4/day4/src/main.rs
 https://gist.github.com/samueltardieu/9d61cca5c6366f98e43f5719c3ae86b5
 https://gist.github.com/whiter4bbit/220d30f3278b0077a08c4f28b8047eee
 
+AxlLind's is particularly clean. I like the itertools approach, though my attempt
+to factor out a helper function to separate the file's lines into blank line-delimited
+"chunks" failed spectacularly. The return types for Iterators get way too complicated, and
+you can't copy them from error messages because they reference closures.
+
+The `lazy_static!` construct seems to break inference in vscode when you use it inside a
+function, but not when you use it at module-level. Weird.
+
 ## Day 2
 
 First time using regexes in Rust. Overall it seems... mostly reasonable? I got thrown off by a few things:
