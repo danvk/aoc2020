@@ -1,5 +1,6 @@
 use std::env;
 use std::collections::HashMap;
+use itertools::Itertools;
 use regex::Regex;
 use aoc2020::util;
 
@@ -14,15 +15,12 @@ struct Passport {
 }
 
 fn process_passport(text: &str) -> Option<Passport> {
-  // let re: Regex = Regex::new(r"[ \n\r]+").unwrap();
   // println!("Passport:\n{}\n---", text);
-  let mut fields: HashMap<String, String> = HashMap::new();
-  for field in text.split_whitespace() {
-    if field.chars().nth(3).unwrap() != ':' {
-      panic!("Invalid field: {}", field);
-    }
-    fields.insert(field[0..3].to_string(), field[4..].to_string());
-  }
+
+  let fields = text.split_whitespace()
+      .flat_map(|kv| kv.split(':'))
+      .tuples()
+      .collect::<HashMap<_, _>>();
 
   // byr (Birth Year)
   // iyr (Issue Year)
@@ -43,13 +41,13 @@ fn process_passport(text: &str) -> Option<Passport> {
 
   if ok {
     let pass = Passport{
-      byr: String::from(fields.get("byr").unwrap()),
-      iyr: String::from(fields.get("iyr").unwrap()),
-      eyr: String::from(fields.get("eyr").unwrap()),
-      hgt: String::from(fields.get("hgt").unwrap()),
-      hcl: String::from(fields.get("hcl").unwrap()),
-      ecl: String::from(fields.get("ecl").unwrap()),
-      pid: String::from(fields.get("pid").unwrap()),
+      byr: String::from(*fields.get("byr").unwrap()),
+      iyr: String::from(*fields.get("iyr").unwrap()),
+      eyr: String::from(*fields.get("eyr").unwrap()),
+      hgt: String::from(*fields.get("hgt").unwrap()),
+      hcl: String::from(*fields.get("hcl").unwrap()),
+      ecl: String::from(*fields.get("ecl").unwrap()),
+      pid: String::from(*fields.get("pid").unwrap()),
     };
     if validate_passport(&pass) {
       Some(pass)
