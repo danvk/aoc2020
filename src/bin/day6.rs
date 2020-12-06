@@ -8,26 +8,25 @@ fn count_all_yeses(group: &HashMap<char, u32>, num: u32) -> usize {
         .count()
 }
 
+// TODO: factor out a read_chunks function
+// TODO: make the `for c in line.chars()` bit add two HashMaps together
+
 fn process_file(path: &str) {
-    let mut current_group: HashMap<char, u32> = HashMap::new();
-    let mut num_people = 0;
     let mut num_all_yes = 0;
 
-    let lines = util::read_lines(path).unwrap();
-    for line_in in lines {
-        let line = line_in.unwrap();
-        if line == "" {
-            num_all_yes += count_all_yeses(&current_group, num_people);
-            current_group.clear();
-            num_people = 0;
-        } else {
+    // for chunk in util::read_chunks(path).unwrap() {
+    for chunk in std::fs::read_to_string(path).unwrap().split("\n\n") {
+        let mut current_group: HashMap<char, u32> = HashMap::new();
+        let mut num_people = 0;
+
+        for line in chunk.lines() {
             for c in line.chars() {
                 *current_group.entry(c).or_insert(0) += 1;
             }
             num_people += 1;
         }
+        num_all_yes += count_all_yeses(&current_group, num_people);
     }
-    num_all_yes += count_all_yeses(&current_group, num_people);
     println!("Num all yeses: {}", num_all_yes);
 }
 

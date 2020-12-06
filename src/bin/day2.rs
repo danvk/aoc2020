@@ -64,8 +64,8 @@ fn process_file(path: &str) {
   let mut num_valid = 0;
   let mut num_invalid = 0;
 
-  for line in lines {
-    let txt = line.unwrap();
+  for line_in in util::read_lines(path).unwrap() {
+    let line = line_in.unwrap();
     let pass = read_password(&txt);
     if is_valid_password(&pass) {
       num_valid += 1;

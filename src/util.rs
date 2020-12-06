@@ -10,8 +10,7 @@ where P: AsRef<Path>, {
 }
 
 /*
-pub fn read_lines2(filename: &str) -> Vec<&str> {
-    let x: Vec<String> = std::fs::read_to_string(filename).unwrap().split("\n").map(|x| String::from(x).collect();
-    x
+pub fn read_chunks(path: &str) -> io::Result<std::str::Split<'_, &str>> {
+    Ok(std::fs::read_to_string(path)?.split("\n\n"))
 }
 */
