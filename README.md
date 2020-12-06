@@ -1,5 +1,13 @@
 # Notes on Advent of Code 2020
 
+## Day 6
+
+I was able to reuse the chunking code day 4 to make short work of this.
+
+I'm still puzzled at why it's so difficult to factor out functions that work with Iterators in Rust. It seems very easy to get into situations where the return type involves closures that can't be written in the type system, or to get into trouble with the borrow checker.
+
+I looked for a functional way to do "count by" on the characters in a string but wasn't able to find anything.
+
 ## Day 5
 
 I was feeling some social pressure to get out the door this morning, so I just did this one with find/replace, `sort`, `bc` and a spreadsheet.
