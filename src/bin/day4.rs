@@ -1,63 +1,61 @@
-#[macro_use] extern crate lazy_static;
-use std::env;
-use std::collections::HashMap;
+#[macro_use]
+extern crate lazy_static;
+use aoc2020::util;
 use itertools::Itertools;
 use regex::Regex;
-use aoc2020::util;
+use std::collections::HashMap;
+use std::env;
 
 struct Passport {
-  byr: String,
-  iyr: String,
-  eyr: String,
-  hgt: String,
-  hcl: String,
-  ecl: String,
-  pid: String,
+    byr: String,
+    iyr: String,
+    eyr: String,
+    hgt: String,
+    hcl: String,
+    ecl: String,
+    pid: String,
 }
 
 fn process_passport(text: &str) -> Option<Passport> {
-  // println!("Passport:\n{}\n---", text);
+    // println!("Passport:\n{}\n---", text);
 
-  let fields = text.split_whitespace()
-      .flat_map(|kv| kv.split(':'))
-      .tuples()
-      .collect::<HashMap<_, _>>();
+    let fields = text
+        .split_whitespace()
+        .flat_map(|kv| kv.split(':'))
+        .tuples()
+        .collect::<HashMap<_, _>>();
 
-  // byr (Birth Year)
-  // iyr (Issue Year)
-  // eyr (Expiration Year)
-  // hgt (Height)
-  // hcl (Hair Color)
-  // ecl (Eye Color)
-  // pid (Passport ID)
-  // cid (Country ID)
+    // byr (Birth Year)
+    // iyr (Issue Year)
+    // eyr (Expiration Year)
+    // hgt (Height)
+    // hcl (Hair Color)
+    // ecl (Eye Color)
+    // pid (Passport ID)
+    // cid (Country ID)
 
-  let ok = fields.contains_key("byr") &&
-  fields.contains_key("iyr") &&
-  fields.contains_key("eyr") &&
-  fields.contains_key("hgt") &&
-  fields.contains_key("hcl") &&
-  fields.contains_key("ecl") &&
-  fields.contains_key("pid");
+    let ok = ["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"]
+        .iter()
+        .all(|k| fields.contains_key(k));
 
-  if ok {
-    let pass = Passport{
-      byr: String::from(*fields.get("byr").unwrap()),
-      iyr: String::from(*fields.get("iyr").unwrap()),
-      eyr: String::from(*fields.get("eyr").unwrap()),
-      hgt: String::from(*fields.get("hgt").unwrap()),
-      hcl: String::from(*fields.get("hcl").unwrap()),
-      ecl: String::from(*fields.get("ecl").unwrap()),
-      pid: String::from(*fields.get("pid").unwrap()),
-    };
-    if validate_passport(&pass) {
-      Some(pass)
+    if ok {
+        let pass = Passport {
+            byr: String::from(*fields.get("byr").unwrap()),
+            iyr: String::from(*fields.get("iyr").unwrap()),
+            eyr: String::from(*fields.get("eyr").unwrap()),
+            hgt: String::from(*fields.get("hgt").unwrap()),
+            hcl: String::from(*fields.get("hcl").unwrap()),
+            ecl: String::from(*fields.get("ecl").unwrap()),
+            pid: String::from(*fields.get("pid").unwrap()),
+        };
+        if validate_passport(&pass) {
+            Some(pass)
+        } else {
+            None
+        }
     } else {
-      None
+        None
     }
-  } else {
-    None
-  }
 }
 
 // byr (Birth Year) - four digits; at least 1920 and at most 2002.
@@ -71,39 +69,47 @@ fn process_passport(text: &str) -> Option<Passport> {
 // pid (Passport ID) - a nine-digit number, including leading zeroes.
 // cid (Country ID) - ignored, missing or not.
 
-const ECLS: [&str; 7] = ["amb","blu","brn","gry","grn","hzl","oth"];
+const ECLS: [&str; 7] = ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"];
 
 lazy_static! {
-  static ref PID_RE: Regex = Regex::new(r"^[0-9]{9}$").unwrap();
-  static ref HCL_RE: Regex = Regex::new(r"^#[0-9a-f]{6}$").unwrap();
-  static ref HGT_RE: Regex = Regex::new(r"^(\d{2,3})(in|cm)$").unwrap();
+    static ref PID_RE: Regex = Regex::new(r"^[0-9]{9}$").unwrap();
+    static ref HCL_RE: Regex = Regex::new(r"^#[0-9a-f]{6}$").unwrap();
+    static ref HGT_RE: Regex = Regex::new(r"^(\d{2,3})(in|cm)$").unwrap();
 }
 
 fn validate_passport(pass: &Passport) -> bool {
-
-  if
-    pass.byr.as_str() < "1920" || pass.byr.as_str() > "2002" ||
-    pass.iyr.as_str() < "2010" || pass.iyr.as_str() > "2020" ||
-    pass.eyr.as_str() < "2020" || pass.eyr.as_str() > "2030" ||
-    !HCL_RE.is_match(&pass.hcl) ||
-    !PID_RE.is_match(&pass.pid) ||
-    !ECLS.contains(&pass.ecl.as_str()) {
-    return false;
-  }
-
-  match HGT_RE.captures(&pass.hgt) {
-    None => { return false; }
-    Some(caps) => {
-      let val = caps[1].parse::<i32>().unwrap();
-      let units = &caps[2];
-      if !((units == "cm" && (150..=193).contains(&val)) ||
-         (units == "in" && (59..=76).contains(&val))) {
+    let byr = pass.byr.as_str();
+    let iyr = pass.iyr.as_str();
+    let eyr = pass.eyr.as_str();
+    if byr < "1920"
+        || byr > "2002"
+        || iyr < "2010"
+        || iyr > "2020"
+        || eyr < "2020"
+        || eyr > "2030"
+        || !HCL_RE.is_match(&pass.hcl)
+        || !PID_RE.is_match(&pass.pid)
+        || !ECLS.contains(&pass.ecl.as_str())
+    {
         return false;
-      }
     }
-  }
 
-  true
+    match HGT_RE.captures(&pass.hgt) {
+        None => {
+            return false;
+        }
+        Some(caps) => {
+            let val = caps[1].parse::<i32>().unwrap();
+            let units = &caps[2];
+            if !((units == "cm" && (150..=193).contains(&val))
+                || (units == "in" && (59..=76).contains(&val)))
+            {
+                return false;
+            }
+        }
+    }
+
+    true
 }
 
 /*
@@ -121,32 +127,32 @@ fn chunks(path: &str) -> Vec<String> {
 */
 
 fn process_file(path: &str) {
-  let mut current = String::from("");
-  let mut num_ok = 0;
-  let lines = util::read_lines(path).unwrap();
-  for line_in in lines {
-    let line = line_in.unwrap();
-    if line == "" {
-      if process_passport(&current).is_some() {
-        num_ok += 1;
-      }
-      current = String::from("");
-    } else {
-      current += &line;
-      current += " ";
+    let mut current = String::from("");
+    let mut num_ok = 0;
+    let lines = util::read_lines(path).unwrap();
+    for line_in in lines {
+        let line = line_in.unwrap();
+        if line == "" {
+            if process_passport(&current).is_some() {
+                num_ok += 1;
+            }
+            current = String::from("");
+        } else {
+            current += &line;
+            current += " ";
+        }
     }
-  }
-  if process_passport(&current).is_some() {
-    num_ok += 1;
-  }
-  println!("Num OK: {}", num_ok);
+    if process_passport(&current).is_some() {
+        num_ok += 1;
+    }
+    println!("Num OK: {}", num_ok);
 }
 
 fn main() {
-  let args: Vec<String> = env::args().collect();
-  if args.len() != 2 {
-    panic!("Expected one argument, got {}: {:?}", args.len(), args);
-  }
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 2 {
+        panic!("Expected one argument, got {}: {:?}", args.len(), args);
+    }
 
-  process_file(&args[1]);
+    process_file(&args[1]);
 }

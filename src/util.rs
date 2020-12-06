@@ -8,3 +8,10 @@ where P: AsRef<Path>, {
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
 }
+
+/*
+pub fn read_lines2(filename: &str) -> Vec<&str> {
+    let x: Vec<String> = std::fs::read_to_string(filename).unwrap().split("\n").map(|x| String::from(x).collect();
+    x
+}
+*/
