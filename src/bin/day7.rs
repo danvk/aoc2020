@@ -2,7 +2,7 @@
 extern crate lazy_static;
 
 use aoc2020::util;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::env;
 use regex::Regex;
 
@@ -42,7 +42,7 @@ fn parse_rules(path: &str) -> HashMap<String, Vec<(String, u32)>> {
     bags
 }
 
-fn invert_map(input: &HashMap<String, Vec<(String, u32)>>) -> HashMap<String, String> {
+fn invert_map(input: &HashMap<String, Vec<(String, u32)>>) -> HashMap<String, HashSet<String>> {
     /*
     input
         .iter()
@@ -54,7 +54,7 @@ fn invert_map(input: &HashMap<String, Vec<(String, u32)>>) -> HashMap<String, St
         .collect()
         */
 
-    let mut out: HashMap<String, String> = HashMap::new();
+    let mut out: HashMap<String, HashSet<String>> = HashMap::new();
 /*
     for (color, container) in input
     .iter()
@@ -68,15 +68,47 @@ fn invert_map(input: &HashMap<String, Vec<(String, u32)>>) -> HashMap<String, St
     */
     for (container, contents) in input.into_iter() {
         for (color, _count) in contents.iter() {
-            out.insert(String::from(container), String::from(color));
+            out.entry(String::from(container)).or_insert(HashSet::new()).insert(String::from(color));
         }
     }
     out
 }
 
+fn solve_problem(inv_rules: &HashMap<String, HashSet<String>>, start: &str) {
+    let mut colors: HashSet<String> = HashSet::new();
+    colors.insert(String::from(start));
+
+    loop {
+        let mut fringe: HashSet<String> = HashSet::new();
+        for color in colors.iter() {
+            if inv_rules.contains_key(color) {
+                for container in inv_rules[color].iter() {
+                    if !colors.contains(&container.to_string()) {
+                        fringe.insert(String::from(container));
+                    }
+                }
+            }
+        }
+
+        println!("Fringe: {:?}", fringe);
+        if fringe.is_empty() {
+            break;
+        }
+        for color in fringe {
+            colors.insert(color);
+        }
+    }
+
+    println!("Containers: {:?}", colors);
+    println!("Answer: {}", colors.len() - 1);
+}
+
+// not 22
+
 fn process_file(path: &str) {
     let rules = parse_rules(path);
     let inv_rules = invert_map(&rules);
+    solve_problem(&inv_rules, "shiny gold");
 }
 
 fn main() {
