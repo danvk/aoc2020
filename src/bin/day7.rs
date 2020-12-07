@@ -15,7 +15,7 @@ lazy_static! {
 }
 
 
-fn process_file(path: &str) {
+fn parse_rules(path: &str) -> HashMap<String, Vec<(String, u32)>> {
     let mut bags: HashMap<String, Vec<(String, u32)>> = HashMap::new();
     for line_in in util::read_lines(path).unwrap() {
         let line = line_in.unwrap();
@@ -39,7 +39,44 @@ fn process_file(path: &str) {
         println!("Bag {} contents: {:?}", subject, bag);
         bags.insert(String::from(subject), bag);
     }
-    println!("Bags: {:?}", bags);
+    bags
+}
+
+fn invert_map(input: &HashMap<String, Vec<(String, u32)>>) -> HashMap<String, String> {
+    /*
+    input
+        .iter()
+        .flat_map(|(&container, &contents)|
+            contents
+            .iter()
+            .map(|(color, _count)| (color.to_owned(), container.to_owned()))
+        )
+        .collect()
+        */
+
+    let mut out: HashMap<String, String> = HashMap::new();
+/*
+    for (color, container) in input
+    .iter()
+    .flat_map(|(&container, &contents)|
+        contents
+        .into_iter()
+        .map(|(color, _count)| (color, String::from(container)))
+    ) {
+        out.insert(String::from(color), container);
+    }
+    */
+    for (container, contents) in input.into_iter() {
+        for (color, _count) in contents.iter() {
+            out.insert(String::from(container), String::from(color));
+        }
+    }
+    out
+}
+
+fn process_file(path: &str) {
+    let rules = parse_rules(path);
+    let inv_rules = invert_map(&rules);
 }
 
 fn main() {
