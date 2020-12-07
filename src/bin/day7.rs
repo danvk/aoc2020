@@ -68,7 +68,7 @@ fn invert_map(input: &HashMap<String, Vec<(String, u32)>>) -> HashMap<String, Ha
     */
     for (container, contents) in input.into_iter() {
         for (color, _count) in contents.iter() {
-            out.entry(String::from(container)).or_insert(HashSet::new()).insert(String::from(color));
+            out.entry(String::from(color)).or_insert(HashSet::new()).insert(String::from(container));
         }
     }
     out
@@ -108,6 +108,7 @@ fn solve_problem(inv_rules: &HashMap<String, HashSet<String>>, start: &str) {
 fn process_file(path: &str) {
     let rules = parse_rules(path);
     let inv_rules = invert_map(&rules);
+    println!("inverted map: {:?}", inv_rules);
     solve_problem(&inv_rules, "shiny gold");
 }
 
