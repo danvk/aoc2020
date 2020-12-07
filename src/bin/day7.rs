@@ -103,13 +103,18 @@ fn solve_problem(inv_rules: &HashMap<String, HashSet<String>>, start: &str) {
     println!("Answer: {}", colors.len() - 1);
 }
 
+fn num_bags_inside(rules: &HashMap<String, Vec<(String, u32)>>, color: &str) -> u32 {
+    let count: u32 = rules[color].iter().map(|(bag, count)| *count * num_bags_inside(rules, bag)).sum();
+    1u32 + count
+}
 // not 22
 
 fn process_file(path: &str) {
     let rules = parse_rules(path);
-    let inv_rules = invert_map(&rules);
-    println!("inverted map: {:?}", inv_rules);
-    solve_problem(&inv_rules, "shiny gold");
+    // let inv_rules = invert_map(&rules);
+    // println!("inverted map: {:?}", inv_rules);
+    // solve_problem(&inv_rules, "shiny gold");
+    println!("{}", num_bags_inside(&rules, "shiny gold") - 1);
 }
 
 fn main() {
