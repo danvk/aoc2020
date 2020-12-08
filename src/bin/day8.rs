@@ -5,7 +5,11 @@ use aoc2020::util;
 use regex::Regex;
 use std::{collections::HashSet, env};
 
-#[derive(PartialEq, Eq, Debug)]
+// TODO:   Change Instruction.op to be more like a tagged union
+// TODO: x Use match / case on op.op
+// TODO: x Use if let in process_file
+
+#[derive(PartialEq, Eq, Clone, Debug)]
 struct Instruction {
     op: String,
     arg: i32,
@@ -24,35 +28,68 @@ fn parse_instruction(text: &str) -> Instruction {
     Instruction { op, arg }
 }
 
-fn process_file(path: &str) {
-    let program: Vec<Instruction> = util::read_lines(path)
+fn read_program(path: &str) -> Vec<Instruction> {
+    util::read_lines(path)
         .unwrap()
         .map(|line| line.unwrap())
         .map(|line| parse_instruction(&line))
-        .collect();
+        .collect()
+}
 
+/// Returns the final accumulator value or None if the program goes into an infinite loop.
+fn run_program(ops: &Vec<Instruction>) -> Option<i32> {
     let mut line = 0usize;
     let mut acc = 0;
     let mut run_lines: HashSet<usize> = HashSet::new();
-    let mut n = 0;
+    // let mut n = 0;
 
     loop {
-        n += 1;
-        println!("{} {}: {:?} acc {}", n, line, &program[line], acc);
+        // n += 1;
+        // println!("{} {}: {:?} acc {}", n, line, &ops[line], acc);
         if run_lines.contains(&line) {
-            println!("line: {} accumulator: {}", line, acc);
-            break;
+            // println!("{} {}: {:?} acc {}", n, line, &ops[line], acc);
+            return None;
+        } else if line == ops.len() {
+            return Some(acc);
         }
 
+        let mut next_line = line + 1;
         run_lines.insert(line);
-        let op = &program[line];
+        let op = &ops[line];
+        match op.op.as_str() {
+            "nop" => {}
+            "acc" => {
+                acc += op.arg;
+            }
+            "jmp" => {
+                next_line = (line as i32 + op.arg) as usize;
+            }
+            _ => {
+                panic!("Surprise op: {:?}", op);
+            }
+        }
+        line = next_line;
+    }
+}
+
+fn process_file(path: &str) {
+    let program = read_program(path);
+    for (i, op) in program.iter().enumerate() {
+        let mut variation = program.to_vec();
         if op.op == "nop" {
-            line += 1;
-        } else if op.op == "acc" {
-            acc += op.arg;
-            line += 1;
+            variation[i] = Instruction {
+                op: String::from("jmp"),
+                arg: op.arg,
+            };
         } else if op.op == "jmp" {
-            line = (line as i32 + op.arg) as usize;
+            variation[i] = Instruction {
+                op: String::from("nop"),
+                arg: op.arg,
+            };
+        }
+        if let Some(acc) = run_program(&variation) {
+            println!("swap: {}, acc: {}", i, acc);
+            break;
         }
     }
 }
