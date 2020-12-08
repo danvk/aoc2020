@@ -2,9 +2,9 @@
 extern crate lazy_static;
 
 use aoc2020::util;
+use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::env;
-use regex::Regex;
 
 lazy_static! {
     // muted yellow bags contain 2 shiny gold bags, 9 faded blue bags.
@@ -13,7 +13,6 @@ lazy_static! {
     // 2 vibrant plum bags
     static ref BAG_RE: Regex = Regex::new(r"(\d+) ([a-z ]+) bags?").unwrap();
 }
-
 
 fn parse_rules(path: &str) -> HashMap<String, Vec<(String, u32)>> {
     let mut bags: HashMap<String, Vec<(String, u32)>> = HashMap::new();
@@ -55,7 +54,7 @@ fn invert_map(input: &HashMap<String, Vec<(String, u32)>>) -> HashMap<String, Ha
         */
 
     let mut out: HashMap<String, HashSet<String>> = HashMap::new();
-/*
+    /*
     for (color, container) in input
     .iter()
     .flat_map(|(&container, &contents)|
@@ -68,7 +67,9 @@ fn invert_map(input: &HashMap<String, Vec<(String, u32)>>) -> HashMap<String, Ha
     */
     for (container, contents) in input.into_iter() {
         for (color, _count) in contents.iter() {
-            out.entry(String::from(color)).or_insert(HashSet::new()).insert(String::from(container));
+            out.entry(String::from(color))
+                .or_insert(HashSet::new())
+                .insert(String::from(container));
         }
     }
     out
@@ -104,16 +105,19 @@ fn solve_problem(inv_rules: &HashMap<String, HashSet<String>>, start: &str) {
 }
 
 fn num_bags_inside(rules: &HashMap<String, Vec<(String, u32)>>, color: &str) -> u32 {
-    let count: u32 = rules[color].iter().map(|(bag, count)| *count * num_bags_inside(rules, bag)).sum();
+    let count: u32 = rules[color]
+        .iter()
+        .map(|(bag, count)| *count * num_bags_inside(rules, bag))
+        .sum();
     1u32 + count
 }
 // not 22
 
 fn process_file(path: &str) {
     let rules = parse_rules(path);
-    // let inv_rules = invert_map(&rules);
-    // println!("inverted map: {:?}", inv_rules);
-    // solve_problem(&inv_rules, "shiny gold");
+    let inv_rules = invert_map(&rules);
+    println!("inverted map: {:?}", inv_rules);
+    solve_problem(&inv_rules, "shiny gold");
     println!("{}", num_bags_inside(&rules, "shiny gold") - 1);
 }
 
