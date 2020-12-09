@@ -1,5 +1,59 @@
 # Notes on Advent of Code 2020
 
+## Day 9
+
+Got tripped up a bit by `.combinations()` not working as I'd expected:
+
+```rust
+fn is_pair_sum(n: u64, nums: &[u64]) -> bool{
+    // TODO: why can't I make the lambda look like: |(a, b)| a + b == n?
+    nums.iter().combinations(2).any(|x| x[0] + x[1] == n)
+}
+```
+
+The `x` here is `Vec<&u64>`. Looking at Axl's code, it turns out that I need to use `tuple_combinations` instead:
+
+```rust
+fn is_pair_sum(n: u64, nums: &[u64]) -> bool{
+    nums.iter().tuple_combinations().any(|(a, b)| a + b == n)
+}
+```
+
+Why would I ever _not_ want `tuple_combinations`? It feels a little magical to me that `tuple_combinations` is able to infer the `2` from the signature of the `any` callback. How does that work?
+
+I had to switch from `i32` to `i64` for accumulating. (I got an overflow panic, which was much more helpful than the incorrect results you'd get in C.) I'm nervous what will happen if I need to go higher than that. I remember that Python's bigints were quite helpful for last year's IntCode computer.
+
+The constant conversions between `i32` and `usize` for indexing are pretty annoying. You need a `usize` to index. But if you ever want to subtract one, you need to convert it to an `i32` first. Hence this grossness:
+
+```rust
+is_pair_sum(n, &nums[(i as i32 - preamble_len) as usize..i])
+```
+
+## Day 8
+
+Our first problem involving implementing a computer. Switching from a struct:
+
+```rust
+struct Instruction {
+    op: String,
+    arg: i32,
+}
+```
+
+to an enum:
+
+```rust
+enum Op {
+    Nop(i32),
+    Acc(i32),
+    Jmp(i32),
+}
+```
+
+moved more logic into the parsing but simplified everything downstream. It does feel odd to me that I can't name the parameters in each case of the enum (`arg: i32` instead of just `i32`).
+
+I learned about `filter_map`, which combines `map` with unwrapping `Option`s. This seems great, but I haven't been able to use it yet because I usually want to unwrap `Result`s.
+
 ## Day 6
 
 I was able to reuse the chunking code day 4 to make short work of this.
