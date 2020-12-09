@@ -29,6 +29,13 @@ The constant conversions between `i32` and `usize` for indexing are pretty annoy
 is_pair_sum(n, &nums[(i as i32 - preamble_len) as usize..i])
 ```
 
+Iterating from short subsequences to long makes a huge time difference, even though both are O(N^3):
+
+    Time: 2961ms
+    Time: 7ms
+
+
+
 ## Day 8
 
 Our first problem involving implementing a computer. Switching from a struct:

@@ -35,15 +35,17 @@ fn process_file(nums: &[u64], preamble_len: usize) -> Option<u64> {
     // None
 }
 
-fn find_sequence(nums: &[u64], n: u64) {
-    // TODO: swap in something more efficient here and time the difference
-    let m = (0..nums.len())
-        .combinations(2)
-        .find(|x| nums[x[0]..=x[1]].iter().sum::<u64>() == n);
-    let indices = m.unwrap();
-    let a = indices[0];
-    let b = indices[1];
-    let s = &nums[a..=b];
+fn find_sequence(nums: &[u64], target: u64) {
+    let n = nums.len() as i32;
+    let (a, b) = (2..n)
+        .find_map(|d| {
+            (0..n - d)
+                .find(|&a| nums[a as usize..(a + d) as usize].iter().sum::<u64>() == target)
+                .map(|a| (a, a + d))
+        })
+        .unwrap();
+
+    let s = &nums[a as usize..=b as usize];
     let lo = s.iter().min().unwrap();
     let hi = s.iter().max().unwrap();
     println!(
