@@ -1,5 +1,14 @@
 # Notes on Advent of Code 2020
 
+## Day 10
+
+Part two was the first puzzle where brute force was too slow. My first instinct was to do the search from both sides, to sqrt the runtime. But getting the join condition just right is tricky. Then I realized there are some joltages that you _have_ to go through. So those are the natural breakpoints. From there it was a fight with off-by-one errors.
+
+One thing I find confusing about Rust iterators... why is the type of `x` here `&i32` and not just `i32`?
+
+    let jolts: &[i32];
+    jolts.iter().map(|x| x);
+
 ## Day 9
 
 Got tripped up a bit by `.combinations()` not working as I'd expected:
