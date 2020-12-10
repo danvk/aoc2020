@@ -22,58 +22,51 @@ fn count_diffs(seq: &[i32]) -> HashMap<i32, i32> {
     out
 }
 
-fn find_seq(jolts: &HashSet<i32>, current: i32, target: i32) -> Option<Vec<i32>> {
+fn find_seq(jolts: &[i32], current: i32, target: i32) -> Option<Vec<i32>> {
     if current == target {
         return Some(vec![]);
     }
 
-    for diff in vec![1, 2, 3] {
-        let next = current + diff;
-        if next > target {
+    for i in 0..jolts.len().min(3) {
+        let next = jolts[i];
+        if next > target || next - current > 3 {
             continue;
         }
-        if jolts.contains(&next) {
-            // TODO: use a mask to do this without all the copying
-            // Try this as the next item
-            let mut next_jolts = jolts.clone();
-            next_jolts.remove(&next);
-            if let Some(mut seq) = find_seq(&next_jolts, next, target) {
-                seq.push(next);
-                return Some(seq);
-            }
+        if let Some(mut seq) = find_seq(&jolts[(1+i)..], next, target) {
+            seq.push(next);
+            return Some(seq);
         }
     }
 
     None
 }
 
-fn count_distinct(jolts: &HashSet<i32>, mask: &mut Vec<bool>, current: i32, target: i32) -> i32 {
+fn count_distinct(jolts: &[i32], current: i32, target: i32) -> i32 {
     if current == target {
         return 1;
     }
 
     let mut num_distinct = 0;
-    for diff in vec![1, 2, 3] {
-        let next = current + diff;
-        if next > target {
+    for i in 0..jolts.len().min(3) {
+        let next = jolts[i];
+        if next > target || next - current > 3 {
             continue;
         }
-        let nu = next as usize;
-        if !mask[nu] && jolts.contains(&next) {
-            // Try this as the next item
-            mask[nu] = true;
-            num_distinct += count_distinct(&jolts, mask, next, target);
-            mask[nu] = false;
-        }
+        num_distinct += count_distinct(&jolts[(1+i)..], next, target);
     }
 
     num_distinct
 }
 
+fn count_distinct_to(jolts: &Vec<i32>) {
+
+}
+
 fn process_jolts(nums: &[i32]) {
-    // XXX what is the .cloned() all about?
-    let jolts: HashSet<i32> = HashSet::from_iter(nums.iter().cloned());
-    let max = nums.iter().max().unwrap();
+    // TODO: why do I need the .map() here?
+    let mut jolts: Vec<i32> = Vec::from_iter(nums.iter().map(|x| *x));
+    jolts.sort();
+    let max = jolts.iter().max().unwrap();
 
     let seq = find_seq(&jolts, 0, *max).unwrap();
     let diffs = count_diffs(&seq);
@@ -87,7 +80,7 @@ fn process_jolts(nums: &[i32]) {
     // TODO: ^^^ track down the off-by-one
     println!("answer: {} * {} = {}", a, b, a * b);
 
-    let distinct = count_distinct(&jolts, &mut vec![false; 1 + *max as usize], 0, *max);
+    let distinct = count_distinct(&jolts, 0, *max);
     println!("distinct ways: {}", distinct);
 }
 
