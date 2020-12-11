@@ -83,6 +83,7 @@ fn num_neighbors(ferry: &Ferry, x: usize, y: usize) -> usize {
             }
         }
     }
+    // println!("n {}", num);
     num
     /*
     DS
@@ -106,24 +107,24 @@ fn next_state(ferry: &Ferry, x: usize, y: usize) -> Cell {
             if n >= 4 {
                 Cell::Empty
             } else {
-                c
+                Cell::Occupied
             }
         }
         Cell::Empty => {
             if n == 0 {
                 Cell::Occupied
             } else {
-                c
+                Cell::Empty
             }
         }
-        Cell::Floor => c,
+        Cell::Floor => Cell::Floor,
     }
 }
 
 fn advance(ferry: &Ferry) -> Ferry {
     let n = ferry.len();
     (0..n)
-        .map(|y| (0..n).map(|x| next_state(ferry, x, y)).collect())
+        .map(|y| (0..ferry[y].len()).map(|x| next_state(ferry, x, y)).collect())
         .collect()
 }
 
@@ -151,16 +152,19 @@ fn process_file(path: &str) {
         n += 1;
         ferry = advance(&ferry);
         let s = fmt_ferry(&ferry);
-        // println!("\n{} occupied: {}\n{}", n, num_occ(&ferry), s);
+        println!("\n{} occupied: {}\n{}\n---", n, num_occ(&ferry), s);
         if s == last_ferry {
             break;
         }
         last_ferry = s;
     }
+    println!("{}", last_ferry);
     println!("{}, occupied: {}", n, num_occ(&ferry));
 }
 
 // 2129 = too low
+// 2130 = too low
+// 2164 = correct
 
 fn main() {
     let args: Vec<String> = env::args().collect();
