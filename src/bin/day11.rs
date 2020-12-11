@@ -75,11 +75,20 @@ fn num_neighbors(ferry: &Ferry, x: usize, y: usize) -> usize {
     let yi = y as i32;
     let xi = x as i32;
     for (dx, dy) in DS.iter() {
-        if let Some(row) = ferry.get((yi + *dy) as usize) {
-            if let Some(c) = row.get((xi + *dx) as usize) {
-                if *c == Cell::Occupied {
-                    num += 1;
+        for k in 1i32..=(10 + ferry.len()) as i32 {
+            if let Some(row) = ferry.get((yi + k * *dy) as usize) {
+                if let Some(c) = row.get((xi + k * *dx) as usize) {
+                    if *c == Cell::Occupied {
+                        num += 1;
+                        break;
+                    } else if *c == Cell::Empty {
+                        break;
+                    }
+                } else {
+                    continue;
                 }
+            } else {
+                continue;
             }
         }
     }
@@ -104,7 +113,7 @@ fn next_state(ferry: &Ferry, x: usize, y: usize) -> Cell {
 
     match c {
         Cell::Occupied => {
-            if n >= 4 {
+            if n >= 5 {
                 Cell::Empty
             } else {
                 Cell::Occupied
@@ -152,7 +161,7 @@ fn process_file(path: &str) {
         n += 1;
         ferry = advance(&ferry);
         let s = fmt_ferry(&ferry);
-        println!("\n{} occupied: {}\n{}\n---", n, num_occ(&ferry), s);
+        // println!("\n{} occupied: {}\n{}\n---", n, num_occ(&ferry), s);
         if s == last_ferry {
             break;
         }
