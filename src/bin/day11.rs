@@ -40,7 +40,7 @@ fn fmt_ferry(ferry: &Ferry) -> String {
         .iter()
         .map(|row| {
             row.iter()
-                .map(|c| format!("{}", c))
+                .map(|c| c.to_string())
                 .collect::<Vec<String>>()
                 .join("")
         })
@@ -68,40 +68,16 @@ const DS: [(i32, i32); 8] = [
 ];
 
 fn num_neighbors(ferry: &Ferry, x: usize, y: usize) -> usize {
-    let mut num = 0;
-    let yi = y as i32;
-    let xi = x as i32;
-    for (dx, dy) in DS.iter() {
-        for k in 1i32..=(10 + ferry.len()) as i32 {
-            if let Some(row) = ferry.get((yi + k * *dy) as usize) {
-                if let Some(c) = row.get((xi + k * *dx) as usize) {
-                    if *c == Cell::Occupied {
-                        num += 1;
-                        break;
-                    } else if *c == Cell::Empty {
-                        break;
-                    }
-                } else {
-                    continue;
-                }
-            } else {
-                continue;
-            }
-        }
-    }
-    // println!("n {}", num);
-    num
-    /*
     DS
         .iter()
-        .filter_map(|(dx, dy)| {
+        .map(|(dx, dy)| (x as i32 + dx, y as i32 + dy))
+        .filter_map(|(nx, ny)| {
             ferry
-                .get((y as i32 + dy) as usize)
-                .map_or(None, |row| row.get(((x as i32) + dx) as usize))
+                .get(ny as usize)
+                .and_then(|row| row.get(nx as usize))
         })
         .filter(|&&c| c == Cell::Occupied)
         .count()
-        */
 }
 
 fn next_state(ferry: &Ferry, x: usize, y: usize) -> Cell {
@@ -110,7 +86,7 @@ fn next_state(ferry: &Ferry, x: usize, y: usize) -> Cell {
 
     match c {
         Cell::Occupied => {
-            if n >= 5 {
+            if n >= 4 {
                 Cell::Empty
             } else {
                 Cell::Occupied
@@ -137,12 +113,11 @@ fn advance(ferry: &Ferry) -> Ferry {
 fn num_occ(ferry: &Ferry) -> i32 {
     ferry
         .iter()
-        .map(|row| {
+        .flat_map(|row| {
             row.iter()
-                .map(|&cell| if cell == Cell::Occupied { 1 } else { 0 })
-                .sum::<i32>()
+                .filter(|&&cell| cell == Cell::Occupied)
         })
-        .sum()
+        .count() as i32
 }
 
 fn process_file(path: &str) {

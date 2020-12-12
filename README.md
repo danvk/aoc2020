@@ -8,6 +8,26 @@ I eventually got frustrated and reimplemented the whole thing in Python. It only
 
 Jack said he had a unit test for a 3x2 grid. In retrospect that would have been a good way to do it, too. Unit tests for slightly higher level functions than "count your neighbors".
 
+Notes from Axel's code:
+
+- There's an `unreachable!()` macro you can use instead of `panic!("reason")`.
+  Not exactly sure why you'd prefer this.
+- He used `get` and `and_then` to chain map lookups. I was looking for `and_then`!
+  I tried using `map_or` but ran into some bugs that I couldn't figure out.
+  I wound up rewriting this in a more imperative style.
+- He also wrote out an eight-element tuple of directions (`DS`).
+  This was a source of confusing bugs for me, as I had a duplicate / missing entry in mine.
+- Axel tends to separate his `as i64` from his `as usize`, the latter only appearing at the
+  place where you index into an array.
+- Using `|&&x|` in a lambda is OK.
+- Apparently you can do this (`i` and `j` being parameters):
+
+    let (mut i, mut j) = (i as i64, j as i64);
+
+It's not always clear to me when you need to write `.iter()` before `.map()` and when you can
+just write `.map()`. Or when you need to write `.collect()`. Why do I have to `.collect()` an
+iterator of `String`s before calling `join()`?
+
 ## Day 10
 
 Part two was the first puzzle where brute force was too slow. My first instinct was to do the search from both sides, to sqrt the runtime. But getting the join condition just right is tricky. Then I realized there are some joltages that you _have_ to go through. So those are the natural breakpoints. From there it was a fight with off-by-one errors.
