@@ -28,6 +28,8 @@ It's not always clear to me when you need to write `.iter()` before `.map()` and
 just write `.map()`. Or when you need to write `.collect()`. Why do I have to `.collect()` an
 iterator of `String`s before calling `join()`?
 
+You can use `use EnumType::*` to drop the need to qualify its contituents.
+
 ## Day 10
 
 Part two was the first puzzle where brute force was too slow. My first instinct was to do the search from both sides, to sqrt the runtime. But getting the join condition just right is tricky. Then I realized there are some joltages that you _have_ to go through. So those are the natural breakpoints. From there it was a fight with off-by-one errors.

@@ -8,15 +8,17 @@ enum Cell {
     Floor,
 }
 
+use Cell::*;
+
 impl fmt::Display for Cell {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
             "{}",
             match self {
-                Cell::Empty => "L",
-                Cell::Occupied => "#",
-                Cell::Floor => ".",
+                Empty => "L",
+                Occupied => "#",
+                Floor => ".",
             }
         )
     }
@@ -24,9 +26,9 @@ impl fmt::Display for Cell {
 
 fn parse_char(c: char) -> Cell {
     match c {
-        '.' => Cell::Floor,
-        '#' => Cell::Occupied,
-        'L' => Cell::Empty,
+        '.' => Floor,
+        '#' => Occupied,
+        'L' => Empty,
         _ => panic!("Invalid cell: {}", c),
     }
 }
@@ -35,7 +37,7 @@ fn parse_char(c: char) -> Cell {
 type Ferry = Vec<Vec<Cell>>;
 
 fn fmt_ferry(ferry: &Ferry) -> String {
-    // TODO: I assume there's a more idiomatic way to do this without format! or collect
+    // TODO: I assume there's a more idiomatic way to do this without all the collect()s.
     ferry
         .iter()
         .map(|row| {
@@ -76,7 +78,7 @@ fn num_neighbors(ferry: &Ferry, x: usize, y: usize) -> usize {
                 .get(ny as usize)
                 .and_then(|row| row.get(nx as usize))
         })
-        .filter(|&&c| c == Cell::Occupied)
+        .filter(|&&c| c == Occupied)
         .count()
 }
 
@@ -85,28 +87,17 @@ fn next_state(ferry: &Ferry, x: usize, y: usize) -> Cell {
     let n = num_neighbors(ferry, x, y);
 
     match c {
-        Cell::Occupied => {
-            if n >= 4 {
-                Cell::Empty
-            } else {
-                Cell::Occupied
-            }
-        }
-        Cell::Empty => {
-            if n == 0 {
-                Cell::Occupied
-            } else {
-                Cell::Empty
-            }
-        }
-        Cell::Floor => Cell::Floor,
+        Occupied if n >= 4 => Empty,
+        Empty if n == 0 => Occupied,
+        c => c,
     }
 }
 
 fn advance(ferry: &Ferry) -> Ferry {
-    let n = ferry.len();
-    (0..n)
-        .map(|y| (0..ferry[y].len()).map(|x| next_state(ferry, x, y)).collect())
+    let h = ferry.len();
+    let w = ferry[0].len();
+    (0..h)
+        .map(|y| (0..w).map(|x| next_state(ferry, x, y)).collect())
         .collect()
 }
 
@@ -115,7 +106,7 @@ fn num_occ(ferry: &Ferry) -> i32 {
         .iter()
         .flat_map(|row| {
             row.iter()
-                .filter(|&&cell| cell == Cell::Occupied)
+                .filter(|&&cell| cell == Occupied)
         })
         .count() as i32
 }
@@ -166,14 +157,14 @@ mod tests {
         // #.#
         // ###
         let f: Ferry = vec![
-            vec![Cell::Occupied, Cell::Floor, Cell::Occupied, Cell::Occupied],
-            vec![Cell::Occupied, Cell::Occupied, Cell::Occupied, Cell::Occupied],
+            vec![Occupied, Floor, Occupied, Occupied],
+            vec![Occupied, Occupied, Occupied, Occupied],
         ];
         // #.L
         // #LL
-        assert_eq!(next_state(&f, 0, 0), Cell::Occupied);
-        assert_eq!(next_state(&f, 1, 0), Cell::Floor);
-        assert_eq!(next_state(&f, 2, 0), Cell::Empty);
+        assert_eq!(next_state(&f, 0, 0), Occupied);
+        assert_eq!(next_state(&f, 1, 0), Floor);
+        assert_eq!(next_state(&f, 2, 0), Empty);
     }
 
     #[test]
@@ -181,8 +172,8 @@ mod tests {
         // #.##
         // ####
         let f: Ferry = vec![
-            vec![Cell::Occupied, Cell::Floor, Cell::Occupied, Cell::Occupied],
-            vec![Cell::Occupied, Cell::Occupied, Cell::Occupied, Cell::Occupied],
+            vec![Occupied, Floor, Occupied, Occupied],
+            vec![Occupied, Occupied, Occupied, Occupied],
         ];
         // #.L
         // #LL
