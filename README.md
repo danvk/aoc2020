@@ -1,5 +1,15 @@
 # Notes on Advent of Code 2020
 
+## Day 12
+
+Hopefully continuing the pattern of easy puzzles on the weekend. I woke up early and wanted to do AoC, so this wound up being my best result so far (17726 / 14724 — tough to get a top result on the east coast!).
+
+A few things of note:
+
+- (-90) % 360 = -90 in Rust
+- I wanted to write `(dx, dy) = (-dy, dx)` to rotate 90°, but was referred to https://github.com/rust-lang/rfcs/issues/372
+- Storing the waypoint delta, instead of its absolute position, wound up being a good choice.
+
 ## Day 11
 
 My code for part 1 worked just great on the sample code, but produced an incorrect answer on my input. A bug! These tend to be quite frustrating with AoC since you only know the correct output for what they give you. I tried a few different things but to no avail. My unit tests were passing but I was producing the wrong answer.
