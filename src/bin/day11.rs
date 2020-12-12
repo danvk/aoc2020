@@ -1,8 +1,5 @@
-#[macro_use]
-extern crate lazy_static;
 use aoc2020::util;
-use regex::Regex;
-use std::{collections::HashSet, env, fmt};
+use std::{env, fmt};
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 enum Cell {

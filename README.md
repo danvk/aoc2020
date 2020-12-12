@@ -1,5 +1,13 @@
 # Notes on Advent of Code 2020
 
+## Day 11
+
+My code for part 1 worked just great on the sample code, but produced an incorrect answer on my input. A bug! These tend to be quite frustrating with AoC since you only know the correct output for what they give you. I tried a few different things but to no avail. My unit tests were passing but I was producing the wrong answer.
+
+I eventually got frustrated and reimplemented the whole thing in Python. It only took maybe 10 minutes. It gave me the correct answer and, more importantly, correct intermediate states to compare against my broken Rust program. As it turned out, while the sample input was square (10x10), my personal input was slightly off-square (92x91). Sneaky! And I'd made an assumption about a square grid in one part of my code. Once I fixed the bug, part two was pretty easy.
+
+Jack said he had a unit test for a 3x2 grid. In retrospect that would have been a good way to do it, too. Unit tests for slightly higher level functions than "count your neighbors".
+
 ## Day 10
 
 Part two was the first puzzle where brute force was too slow. My first instinct was to do the search from both sides, to sqrt the runtime. But getting the join condition just right is tricky. Then I realized there are some joltages that you _have_ to go through. So those are the natural breakpoints. From there it was a fight with off-by-one errors.
