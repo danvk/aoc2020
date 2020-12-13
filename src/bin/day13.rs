@@ -30,7 +30,7 @@ fn process_file(path: &str) {
         .enumerate()
         .filter(|(_, x)| *x != "x")
         .map(|(t, x)| (x.parse::<u64>().unwrap(), t as u64))
-        .map(|(p, t)| (p, t % p))
+        .map(|(p, t)| (p, (p - (t % p)) % p))
         .collect::<Vec<_>>();
     // pt.sort();
     pt = pt.into_iter().rev().collect();
@@ -38,24 +38,18 @@ fn process_file(path: &str) {
     println!("t0: {}", t0);
     println!("primes: {:?}", pt);
 
-    while pt.len() != 1 {
-        let mut next = vec![];
-        for i in (0..pt.len()).step_by(2) {
-            let (p1, t1) = pt[i];
-            if i + 1 < pt.len() {
-                let (p2, t2) = pt[i + 1];
-                let t = first_congruence(p1, t1, p2, t2);
-                let p = p1 * p2;
-                next.push((p, t));
-            } else {
-                next.push((p1, t1));
-            }
-        }
-        println!("next: {:?}", next);
-        pt = next;
+    let (mut p, mut t) = pt[0];
+    assert!(t != 0);
+    // let mut p0 = 0;
+    for &(pi, ti) in &pt[1..] {
+        // if ti == 0 {
+        //     p0 = pi;
+        //     continue;
+        // }
+        t = first_congruence(p, t, pi, ti);
+        p *= pi;
     }
-    let (p, t) = pt[0];
-    println!("answer: {} - {} = {}?", p, t, p - t);
+    println!("{} mod {}", t, p);
 
     // for w in tp.windows(2) {
     //     // Keep getting "refutable pattern in binding" errors here:

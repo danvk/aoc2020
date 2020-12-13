@@ -1,5 +1,20 @@
 # Notes on Advent of Code 2020
 
+## Day 13
+
+Relieved that I didn't overflow u64 today! My modular math is quite rusty (I took college Algebra in… 2003?) so while I was pretty confident there was a canonical solution to a system of equations over different moduli, I didn't remember exactly what it was. I was pretty confident that I could solve subproblems by figuring out what the number was mod p1*p2 if p1 and p2 were relatively prime.
+
+I _was_ able to come up with an answer this way, but unfortunately it wasn't the smallest answer on the sample problem. I got:
+
+    // primes: [(59, 4), (31, 6), (19, 7), (13, 1), (7, 0)]
+    n = 2093560 (mod 3162341)
+
+but the solution was 1068781. I noticed that this was close to the difference of those two numbers, so I tried it… and `3162341 - 2093560 = 1068781`! So I tried this on the big problem and it worked.
+
+Looking back at this, I had the congruences messed up. If you want bus 19 to show up one timestamp after bus 7, then you need n + 1 = 0 (mod 19), not n = 1 (mod 19). That explains why I had the answer exactly backwards! My solution did work, I was just solving the wrong problem. In retrospect, writing more tests on small inputs would have helped me find this.
+
+There are very efficient ways to calculate the multiplicative inverse of a number mod a prime, but my brute force solution worked fine in practice.
+
 ## Day 12
 
 Hopefully continuing the pattern of easy puzzles on the weekend. I woke up early and wanted to do AoC, so this wound up being my best result so far (17726 / 14724 — tough to get a top result on the east coast!).
