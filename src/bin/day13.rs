@@ -22,33 +22,52 @@ fn first_congruence(p1: u64, t1: u64, p2: u64, t2: u64) -> u64 {
 fn process_file(path: &str) {
     let mut lines = util::read_lines(path).unwrap();
     let t0 = lines.next().unwrap().unwrap().parse::<u64>().unwrap();
-    let mut tp = lines
+    let mut pt = lines
         .next()
         .unwrap()
         .unwrap()
         .split(",")
-        .filter(|&x| x != "x")
-        .map(|x| x.parse::<u64>().unwrap())
         .enumerate()
-        .map(|(rem, p)| (p, rem))
+        .filter(|(_, x)| *x != "x")
+        .map(|(t, x)| (x.parse::<u64>().unwrap(), t as u64))
+        .map(|(p, t)| (p, t % p))
         .collect::<Vec<_>>();
-    tp.sort();
-    tp = tp.into_iter().rev().collect();
+    // pt.sort();
+    pt = pt.into_iter().rev().collect();
 
     println!("t0: {}", t0);
-    println!("primes: {:?}", tp);
+    println!("primes: {:?}", pt);
 
-    for w in tp.windows(2) {
-        // Keep getting "refutable pattern in binding" errors here:
-        // let &[(p1, t1), (p2, t2)] = w;
-        let (p1, t1) = w[0];
-        let (p2, t2) = w[1];
-        println!("base ({}, {}) = {}", p1, p2, first_congruence(p1, t1 as u64, p2, t2 as u64));
+    while pt.len() != 1 {
+        let mut next = vec![];
+        for i in (0..pt.len()).step_by(2) {
+            let (p1, t1) = pt[i];
+            if i + 1 < pt.len() {
+                let (p2, t2) = pt[i + 1];
+                let t = first_congruence(p1, t1, p2, t2);
+                let p = p1 * p2;
+                next.push((p, t));
+            } else {
+                next.push((p1, t1));
+            }
+        }
+        println!("next: {:?}", next);
+        pt = next;
     }
+    let (p, t) = pt[0];
+    println!("answer: {} - {} = {}?", p, t, p - t);
 
-    let n = first_congruence(59 * 31, 592, 19 * 13, 118);
-    println!("fc 592, 118 = {}", n);
-    println!("fc 7 next = {}", first_congruence(7, 0, 59 * 31 * 19 * 13, n))
+    // for w in tp.windows(2) {
+    //     // Keep getting "refutable pattern in binding" errors here:
+    //     // let &[(p1, t1), (p2, t2)] = w;
+    //     let (p1, t1) = w[0];
+    //     let (p2, t2) = w[1];
+    //     println!("base ({}, {}) = {}", p1, p2, first_congruence(p1, t1 as u64, p2, t2 as u64));
+    // }
+
+    // let n = first_congruence(59 * 31, 592, 19 * 13, 118);
+    // println!("fc 592, 118 = {}", n);
+    // println!("fc 7 next = {}", first_congruence(7, 0, 59 * 31 * 19 * 13, n))
     // primes: [(59, 2), (31, 3), (19, 4), (13, 1), (7, 0)]
     // base (59, 31) = 592
     // base (31, 19) = 251
@@ -112,6 +131,7 @@ mod tests {
 
     #[test]
     fn test_find_congruence() {
-        assert_eq!(first_congruence(59, 2, 13, 1), 651);
+        // assert_eq!(first_congruence(59, 2, 13, 1), 651);
+        assert_eq!(first_congruence(41, 101, 977, 60), 0);
     }
 }
