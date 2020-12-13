@@ -15,6 +15,8 @@ Looking back at this, I had the congruences messed up. If you want bus 19 to sho
 
 There are very efficient ways to calculate the multiplicative inverse of a number mod a prime, but my brute force solution worked fine in practice.
 
+Apparently this problem is just the Chinese Remainder Theorem. One other wrinkle that tripped me up: because of the way the problem is constructed, sometimes the residue was larger than the prime. So you have to do some addition / modulus in the problem setup, too.
+
 ## Day 12
 
 Hopefully continuing the pattern of easy puzzles on the weekend. I woke up early and wanted to do AoC, so this wound up being my best result so far (17726 / 14724 — tough to get a top result on the east coast!).
