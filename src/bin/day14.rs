@@ -10,7 +10,7 @@ use std::{collections::{HashMap, HashSet}, env};
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 enum Op {
-    Mask{set: u64, mask: u64},
+    Mask{ones: u64, zeros: u64, xs: u64},
     Mem{addr: u64, value: u64},
 }
 
@@ -28,10 +28,11 @@ fn parse_instruction(text: &str) -> Op {
 
     if let Some(groups) = MASK_RE.captures(text) {
         let raw = &groups[1];
-        let mask = u64::from_str_radix(&raw.chars().map(|b| if b == 'X' { '0' } else { '1' }).collect::<String>(), 2).unwrap();
-        let set = u64::from_str_radix(&raw.chars().map(|b| if b == 'X' { '0' } else { b }).collect::<String>(), 2).unwrap();
+        let xs = u64::from_str_radix(&raw.chars().map(|b| if b == 'X' { '1' } else { '0' }).collect::<String>(), 2).unwrap();
+        let ones = u64::from_str_radix(&raw.chars().map(|b| if b == '1' { '1' } else { '0' }).collect::<String>(), 2).unwrap();
+        let zeros = u64::from_str_radix(&raw.chars().map(|b| if b == '0' { '1' } else { '0' }).collect::<String>(), 2).unwrap();
 
-        return Op::Mask { set, mask }
+        return Op::Mask { xs, ones, zeros }
     }
 
     unreachable!("Bad instruction: {}", text);
@@ -50,17 +51,19 @@ fn run_program(ops: &Vec<Op>) -> HashMap<u64, u64> {
     let mut mem: HashMap<u64, u64> = HashMap::new();
     // interesting that you can't make the type a specific variant of the enum
     // let mut mask = Op::Mask { set: 0, mask: 0 };
-    let mut cur_mask = 0u64;
-    let mut cur_set = 0u64;
+    let mut cur_ones = 0u64;
+    let mut _cur_zeros = 0u64;
+    let mut cur_xs = 0u64;
 
     for op in ops {
         match op {
-            Op::Mask { set, mask } => {
-                cur_mask = *mask;
-                cur_set = *set;
+            Op::Mask { ones, zeros, xs } => {
+                cur_ones = *ones;
+                _cur_zeros = *zeros;
+                cur_xs = *xs;
             }
             Op::Mem { addr, value } => {
-                mem.insert(*addr, value & (!cur_mask) | (cur_set & cur_mask));
+                mem.insert(*addr, (value & cur_xs) | cur_ones);
             }
         }
     }
@@ -96,7 +99,7 @@ mod tests {
             "mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X"),
             //                                   4268421
             //                                   631
-            Op::Mask { set: 0b1000000, mask: 0b1000010 }
+            Op::Mask { xs: 0b111111111111111111111111111110111101, ones: 64, zeros: 2 }
         );
         // assert_eq!(parse_instruction("jmp -4"), Op::Jmp(-4));
     }
