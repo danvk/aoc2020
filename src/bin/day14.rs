@@ -8,9 +8,9 @@ use std::{collections::{HashMap, HashSet}, env};
 // TODO: x Use match / case on op.op
 // TODO: x Use if let in process_file
 
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 enum Op {
-    Mask{ones: u64, zeros: u64, xs: u64},
+    Mask{ones: u64, zeros: u64, xs: Vec<u32>},
     Mem{addr: u64, value: u64},
 }
 
@@ -28,7 +28,7 @@ fn parse_instruction(text: &str) -> Op {
 
     if let Some(groups) = MASK_RE.captures(text) {
         let raw = &groups[1];
-        let xs = u64::from_str_radix(&raw.chars().map(|b| if b == 'X' { '1' } else { '0' }).collect::<String>(), 2).unwrap();
+        let xs: Vec<u32> = raw.chars().enumerate().filter(|&(i, b)| b == 'X').map(|(i, b)| i as u32).collect();
         let ones = u64::from_str_radix(&raw.chars().map(|b| if b == '1' { '1' } else { '0' }).collect::<String>(), 2).unwrap();
         let zeros = u64::from_str_radix(&raw.chars().map(|b| if b == '0' { '1' } else { '0' }).collect::<String>(), 2).unwrap();
 
@@ -46,6 +46,20 @@ fn read_program(path: &str) -> Vec<Op> {
         .collect()
 }
 
+fn enumerate_xs(xs: &Vec<u32>) -> Vec<u64> {
+    let mut out = Vec::new();
+    for i in 0..2u32.pow(xs.len() as u32) {
+        let mut v = 0u64;
+        for k in 0..32 {
+            if i & (1 << k) != 0 {
+                v += 1u64 << xs[k as usize];
+            }
+        }
+        out.push(v);
+    }
+    out
+}
+
 /// Returns the final accumulator value or None if the program goes into an infinite loop.
 fn run_program(ops: &Vec<Op>) -> HashMap<u64, u64> {
     let mut mem: HashMap<u64, u64> = HashMap::new();
@@ -53,17 +67,20 @@ fn run_program(ops: &Vec<Op>) -> HashMap<u64, u64> {
     // let mut mask = Op::Mask { set: 0, mask: 0 };
     let mut cur_ones = 0u64;
     let mut _cur_zeros = 0u64;
-    let mut cur_xs = 0u64;
+    let mut cur_xs: &Vec<u32> = &vec![];
 
     for op in ops {
         match op {
             Op::Mask { ones, zeros, xs } => {
                 cur_ones = *ones;
                 _cur_zeros = *zeros;
-                cur_xs = *xs;
+                cur_xs = xs;
             }
             Op::Mem { addr, value } => {
-                mem.insert(*addr, (value & cur_xs) | cur_ones);
+                // If the bitmask bit is 0, the corresponding memory address bit is unchanged.
+                // If the bitmask bit is 1, the corresponding memory address bit is overwritten with 1.
+                // If the bitmask bit is X, the corresponding memory address bit is floating.
+                // mem.insert(*addr, (value & cur_xs) | cur_ones);
             }
         }
     }
@@ -93,14 +110,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_instr() {
-        assert_eq!(parse_instruction("mem[7] = 101"), Op::Mem { addr: 7, value: 101 });
-        assert_eq!(parse_instruction(
-            "mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X"),
-            //                                   4268421
-            //                                   631
-            Op::Mask { xs: 0b111111111111111111111111111110111101, ones: 64, zeros: 2 }
-        );
-        // assert_eq!(parse_instruction("jmp -4"), Op::Jmp(-4));
+    fn test_enumerate_xs() {
+        assert_eq!(enumerate_xs(&vec![0, 1]), vec![0, 1, 2, 3]);
+        assert_eq!(enumerate_xs(&vec![0, 2]), vec![0, 1, 4, 5]);
     }
+    // #[test]
+    // fn test_parse_instr() {
+    //     assert_eq!(parse_instruction("mem[7] = 101"), Op::Mem { addr: 7, value: 101 });
+    //     assert_eq!(parse_instruction(
+    //         "mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X"),
+    //         //                                   4268421
+    //         //                                   631
+    //         Op::Mask { xs: 0b111111111111111111111111111110111101, ones: 64, zeros: 2 }
+    //     );
+    //     // assert_eq!(parse_instruction("jmp -4"), Op::Jmp(-4));
+    // }
 }
