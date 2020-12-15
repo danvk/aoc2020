@@ -1,5 +1,6 @@
 use aoc2020::util;
 use std::{env, fmt};
+use itertools::Itertools;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 enum Cell {
@@ -37,16 +38,13 @@ fn parse_char(c: char) -> Cell {
 type Ferry = Vec<Vec<Cell>>;
 
 fn fmt_ferry(ferry: &Ferry) -> String {
-    // TODO: I assume there's a more idiomatic way to do this without all the collect()s.
     ferry
         .iter()
         .map(|row| {
             row.iter()
                 .map(|c| c.to_string())
-                .collect::<Vec<String>>()
-                .join("")
+                .collect::<String>()
         })
-        .collect::<Vec<String>>()
         .join("\n")
 }
 
