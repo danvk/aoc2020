@@ -1,5 +1,26 @@
 # Notes on Advent of Code 2020
 
+## Day 15
+
+Slightly annoying to avoid off-by-ones, but after that this was quite fast. I was happy that you can get away only storing the last round for each number, as opposed to the previous two or N. I wonder if the 30,000,000 rounds in step 2 is a problem if you implement this in a slow way, or in Python? It took ~2 secs with Rust:
+
+    $ cargo run --release --bin day15 0,20,7,16,1,18,15 30000000
+    Compiling aoc2020 v0.1.0 (/Users/danvk/github/aoc2020)
+        Finished release [optimized] target(s) in 0.52s
+        Running `target/release/day15 0,20,7,16,1,18,15 30000000`
+    nums: [0, 20, 7, 16, 1, 18, 15]
+    last spoken: 129262 after 30000000 rounds (2317 ms)
+
+I was curious so I ported my solution to Python. It's ~6x slower:
+
+    $ time python3 py/day15.py 0,20,7,16,1,18,15 30000000
+    After 30000000, last_spoken=129262
+    python3 py/day15.py 0,20,7,16,1,18,15 30000000  13.51s user 0.18s system 99% cpu 13.721 total
+
+You read everywhere that Rust's default hasher for HashMap is "known to be slow for small keys like ints." I swapped in `rustc_hash::FxHashMap` but didn't get too much of a speedup, only down to ~1.7 secs.
+
+Switching from a `HashMap` to a long `Vec` had a bigger impact on performance, getting me down to 688ms.
+
 ## Day 14
 
 This one wasn't very challenging, just had to work it out and get all the bit shifting and masking right. I used a loop from 0..2.pow(n) to iterate over all possible combinations for the "floating" bits in part 2. I was wondering if Axl would come up with some Rust standard library function for this, but apparently not.
