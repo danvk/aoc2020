@@ -2,11 +2,8 @@
 extern crate lazy_static;
 use aoc2020::util;
 use regex::Regex;
-use std::{collections::{HashMap, HashSet}, env};
-
-// TODO: x Change Instruction.op to be more like a tagged union
-// TODO: x Use match / case on op.op
-// TODO: x Use if let in process_file
+use std::{collections::HashMap, env};
+use std::time::Instant;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 enum Op {
@@ -28,7 +25,7 @@ fn parse_instruction(text: &str) -> Op {
 
     if let Some(groups) = MASK_RE.captures(text) {
         let raw = &groups[1];
-        let xs: Vec<u32> = raw.chars().enumerate().filter(|&(i, b)| b == 'X').map(|(i, b)| i as u32).collect();
+        let xs: Vec<u32> = raw.chars().enumerate().filter(|&(_i, b)| b == 'X').map(|(i, _b)| (35 - i) as u32).collect();
         let ones = u64::from_str_radix(&raw.chars().map(|b| if b == '1' { '1' } else { '0' }).collect::<String>(), 2).unwrap();
         let zeros = u64::from_str_radix(&raw.chars().map(|b| if b == '0' { '1' } else { '0' }).collect::<String>(), 2).unwrap();
 
@@ -60,27 +57,46 @@ fn enumerate_xs(xs: &Vec<u32>) -> Vec<u64> {
     out
 }
 
+fn xs_to_mask(xs: &Vec<u32>) -> u64 {
+    let mut out = 0u64;
+    for x in xs {
+        out += 1u64 << x;
+    }
+    out
+}
+
 /// Returns the final accumulator value or None if the program goes into an infinite loop.
 fn run_program(ops: &Vec<Op>) -> HashMap<u64, u64> {
     let mut mem: HashMap<u64, u64> = HashMap::new();
     // interesting that you can't make the type a specific variant of the enum
     // let mut mask = Op::Mask { set: 0, mask: 0 };
     let mut cur_ones = 0u64;
-    let mut _cur_zeros = 0u64;
+    // let mut cur_zeros = 0u64;
     let mut cur_xs: &Vec<u32> = &vec![];
 
     for op in ops {
         match op {
-            Op::Mask { ones, zeros, xs } => {
+            Op::Mask { ones, zeros: _, xs } => {
                 cur_ones = *ones;
-                _cur_zeros = *zeros;
+                // cur_zeros = *zeros;
                 cur_xs = xs;
             }
-            Op::Mem { addr, value } => {
+            Op::Mem { mut addr, value } => {
                 // If the bitmask bit is 0, the corresponding memory address bit is unchanged.
                 // If the bitmask bit is 1, the corresponding memory address bit is overwritten with 1.
                 // If the bitmask bit is X, the corresponding memory address bit is floating.
                 // mem.insert(*addr, (value & cur_xs) | cur_ones);
+                // println!("addr: {}", addr);
+                addr = (addr & !cur_ones) | cur_ones;
+                // println!("addr+ones: {}", addr);
+                let mask = xs_to_mask(cur_xs);
+                addr = addr & !mask;
+                // println!("addr+ones+mask: {}", addr);
+                for float in enumerate_xs(cur_xs) {
+                    let x = addr | (float & mask);
+                    mem.insert(x, *value);
+                    // println!("Write @{} value {}", x, *value);
+                }
             }
         }
     }
@@ -90,9 +106,11 @@ fn run_program(ops: &Vec<Op>) -> HashMap<u64, u64> {
 
 fn process_file(path: &str) {
     let program = read_program(path);
+    let now = Instant::now();
     let mem = run_program(&program);
-    println!("Memory: {:?}", mem);
+    // println!("Memory: {:?}", mem);
     println!("sum = {}", mem.values().sum::<u64>());
+    println!("Time: {}ms", now.elapsed().as_millis());
 }
 
 fn main() {

@@ -1,5 +1,23 @@
 # Notes on Advent of Code 2020
 
+## Day 14
+
+This one wasn't very challenging, just had to work it out and get all the bit shifting and masking right. I used a loop from 0..2.pow(n) to iterate over all possible combinations for the "floating" bits in part 2. I was wondering if Axl would come up with some Rust standard library function for this, but apparently not.
+
+One thing I was surprised by in Rust: there's a big distinction between an enum, which is a type, and a _variant_ of the enum, which is not. So while I can declare:
+
+    let mask: Op = ...;
+
+I cannot declare:
+
+    let mask: Op::Mask = Op::Mask { ... };
+
+Not really clear to me why you wouldn't want to allow this. It works great in TypeScript.
+
+Another thing I learned: to ignore a field while destructuring / matching, you assign it to `_`:
+
+    Op::Mask { ones, zeros: _, xs }
+
 ## Day 13
 
 Relieved that I didn't overflow u64 today! My modular math is quite rusty (I took college Algebra in… 2003?) so while I was pretty confident there was a canonical solution to a system of equations over different moduli, I didn't remember exactly what it was. I was pretty confident that I could solve subproblems by figuring out what the number was mod p1*p2 if p1 and p2 were relatively prime.
