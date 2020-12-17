@@ -1,6 +1,8 @@
+#[macro_use]
+extern crate lazy_static;
+
 use aoc2020::util;
-use std::{collections::HashMap, env, fmt};
-use itertools::Itertools;
+use std::{collections::HashMap, env};
 
 
 fn parse_char(c: char) -> bool {
@@ -11,34 +13,47 @@ fn parse_char(c: char) -> bool {
     }
 }
 
-type Grid = HashMap<(i32, i32, i32), bool>;
+type Grid = HashMap<(i32, i32, i32, i32), bool>;
 
 fn parse_grid(path: &str) -> Grid {
     let mut grid: Grid = HashMap::new();
     for (y, line) in util::read_lines(path).unwrap().enumerate() {
         for (x, c) in line.unwrap().char_indices() {
-            grid.insert((x as i32, y as i32, 0), parse_char(c));
+            grid.insert((x as i32, y as i32, 0, 0), parse_char(c));
         }
     }
     grid
 }
 
-const DS: [(i32, i32, i32); 26] = [
-    (-1, -1, -1), (0, -1, -1), (1, -1, -1), (-1, 0, -1), (0, 0, -1), (1, 0, -1), (-1, 1, -1), (0, 1, -1), (1, 1, -1),
-    (-1, -1, 0), (0, -1, 0), (1, -1, 0), (-1, 0, 0), (1, 0, 0), (-1, 1, 0), (0, 1, 0), (1, 1, 0),
-    (-1, -1, 1), (0, -1, 1), (1, -1, 1), (-1, 0, 1), (0, 0, 1), (1, 0, 1), (-1, 1, 1), (0, 1, 1), (1, 1, 1),
-];
+lazy_static! {
+    static ref DS: Vec<(i32, i32, i32, i32)> = {
+        let mut v: Vec<(i32, i32, i32, i32)> = vec![];
+        for dx in -1..=1 {
+            for dy in -1..=1 {
+                for dz in -1..=1 {
+                    for dw in -1..=1 {
+                        if dx != 0 || dy != 0 || dz != 0 || dw != 0 {
+                            v.push((dx, dy, dz, dw));
+                        }
+                    }
+                }
+            }
+        }
+        assert_eq!(80, v.len());
+        v
+    };
+}
 
-fn num_neighbors(grid: &Grid, coord: &(i32, i32, i32)) -> usize {
-    let (x, y, z) = coord;
+fn num_neighbors(grid: &Grid, coord: &(i32, i32, i32, i32)) -> usize {
+    let (x, y, z, w) = coord;
     DS
         .iter()
-        .filter_map(|(dx, dy, dz)| grid.get(&(x + dx, y + dy, z + dz)))
+        .filter_map(|(dx, dy, dz, dw)| grid.get(&(x + dx, y + dy, z + dz, w + dw)))
         .filter(|&&active| active)
         .count()
 }
 
-fn next_state(grid: &Grid, coord: &(i32, i32, i32)) -> bool {
+fn next_state(grid: &Grid, coord: &(i32, i32, i32, i32)) -> bool {
     let c = *grid.get(coord).unwrap_or(&false);
     let n = num_neighbors(grid, coord);
 
@@ -53,9 +68,9 @@ fn next_state(grid: &Grid, coord: &(i32, i32, i32)) -> bool {
 
 fn advance(grid: &Grid) -> Grid {
     let mut next: Grid = HashMap::new();
-    for ((x, y, z), _val) in grid.iter() {
-        for (dx, dy, dz) in DS.iter() {
-            let nc = (x + dx, y + dy, z + dz);
+    for ((x, y, z, w), _val) in grid.iter() {
+        for (dx, dy, dz, dw) in DS.iter() {
+            let nc = (x + dx, y + dy, z + dz, w + dw);
             if next.contains_key(&nc) {
                 continue;  // already processed
             }
