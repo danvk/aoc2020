@@ -2,7 +2,7 @@
 extern crate lazy_static;
 
 use aoc2020::util;
-use std::{collections::HashMap, env};
+use std::{collections::HashMap, env, time::Instant};
 
 
 fn parse_char(c: char) -> bool {
@@ -27,7 +27,7 @@ fn parse_grid(path: &str) -> Grid {
 
 lazy_static! {
     static ref DS: Vec<(i32, i32, i32, i32)> = {
-        let mut v: Vec<(i32, i32, i32, i32)> = vec![];
+        let mut v: Vec<(i32, i32, i32, i32)> = Vec::with_capacity(80);
         for dx in -1..=1 {
             for dy in -1..=1 {
                 for dz in -1..=1 {
@@ -68,10 +68,10 @@ fn next_state(grid: &Grid, coord: &(i32, i32, i32, i32)) -> bool {
 
 fn advance(grid: &Grid) -> Grid {
     let mut next: Grid = HashMap::new();
-    for ((x, y, z, w), _val) in grid.iter() {
+    for ((x, y, z, w), val) in grid.iter() {
         for (dx, dy, dz, dw) in DS.iter() {
             let nc = (x + dx, y + dy, z + dz, w + dw);
-            if next.contains_key(&nc) {
+            if !val || next.contains_key(&nc) {
                 continue;  // already processed
             }
             next.insert(nc, next_state(grid, &nc));
@@ -112,7 +112,9 @@ fn main() {
         panic!("Expected one argument, got {}: {:?}", args.len(), args);
     }
 
+    let now = Instant::now();
     process_file(&args[1]);
+    println!("Done in {} ms", now.elapsed().as_millis());
 }
 
 #[cfg(test)]

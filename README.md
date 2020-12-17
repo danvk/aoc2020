@@ -1,5 +1,32 @@
 # Notes on Advent of Code 2020
 
+## Day 17
+
+The trick I learned [last year][2019] of representing grids using maps from coordinate tuples to values made this one a lot easier! Almost no change from part 1 to part 2. The only trick was making sure you considered the next state for all _neighbors_, not all cells.
+
+Was nice to learn that you can use `lazy_static!` to fill a vector. This makes enumerating all the combinations of -1, 0, +1 for directions a lot less error-prone than writing them by hand:
+
+```rust
+lazy_static! {
+    static ref DS: Vec<(i32, i32, i32, i32)> = {
+        let mut v: Vec<(i32, i32, i32, i32)> = vec![];
+        for dx in -1..=1 {
+            for dy in -1..=1 {
+                for dz in -1..=1 {
+                    if dx != 0 || dy != 0 || dz != 0 {
+                        v.push((dx, dy, dz, dw));
+                    }
+                }
+            }
+        }
+        assert_eq!(26, v.len());
+        v
+    };
+}
+```
+
+I don't know if there's any downside to representing the directions this way vs. as `[(i32, i32, i32); 26]`. You can make either work, the latter just requires a little more care.
+
 ## Day 15
 
 Slightly annoying to avoid off-by-ones, but after that this was quite fast. I was happy that you can get away only storing the last round for each number, as opposed to the previous two or N. I wonder if the 30,000,000 rounds in step 2 is a problem if you implement this in a slow way, or in Python? It took ~2 secs with Rust:
@@ -230,3 +257,4 @@ rather than any of these:
 [1]: https://stackoverflow.com/questions/60993657/cross-module-function-call-in-rust
 [2]: https://stackoverflow.com/questions/24542115/how-to-index-a-string-in-rust
 [re]: https://docs.rs/regex/1.4.2/regex/
+[2019]: https://medium.com/@danvdk/python-tips-tricks-for-the-advent-of-code-2019-89ec23a595dd
