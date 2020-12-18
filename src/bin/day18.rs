@@ -5,18 +5,53 @@ extern crate pest;
 extern crate pest_derive;
 
 use aoc2020::util;
-use std::{collections::HashMap, env, time::Instant};
+use std::{env, time::Instant};
 
-use pest::{Parser, iterators::{Pair, Pairs}};
+use pest::{Parser, iterators::{Pair, Pairs}, prec_climber::PrecClimber};
+use pest::prec_climber::{Assoc,Operator};
+
 #[derive(Parser)]
 #[grammar = "day18.pest"]
 struct ExprParser;
 
+/*
 enum Op {
     MUL,
     ADD
 }
+*/
 
+lazy_static! {
+    static ref PREC_CLIMBER: PrecClimber<Rule> = {
+        use Rule::*;
+        use Assoc::*;
+
+        PrecClimber::new(vec![
+            Operator::new(multiply, Left),
+            Operator::new(add, Left),
+        ])
+    };
+}
+
+// TODO: read a little more about how this works
+// TODO: why do I need to trim the whitespace from my digits?
+fn eval(expression: Pairs<Rule>) -> i64 {
+    PREC_CLIMBER.climb(
+        expression,
+        |pair: Pair<Rule>| match pair.as_rule() {
+            Rule::number => pair.as_str().trim().parse::<i64>().unwrap(),
+            Rule::expr => eval(pair.into_inner()),
+            _ => unreachable!(),
+        },
+        |lhs: i64, op: Pair<Rule>, rhs: i64| match op.as_rule() {
+            Rule::add      => lhs + rhs,
+            Rule::multiply => lhs * rhs,
+            _ => unreachable!(),
+        },
+    )
+}
+
+/*
 fn evaluate_expr(expr: Pair<Rule>) -> i64 {
     let mut last_op: Option<Op> = None;
     let mut tally = 0;
@@ -58,6 +93,7 @@ fn evaluate_expr(expr: Pair<Rule>) -> i64 {
 
     tally
 }
+*/
 
 
 fn evaluate(text: &str) -> i64 {
@@ -67,16 +103,13 @@ fn evaluate(text: &str) -> i64 {
 
     // expr.into_inner();
     // println!("expr: {:?}", expr);
-    evaluate_expr(expr)
+    eval(expr.into_inner())
 }
 
 fn process_file(path: &str) {
-    let mut tally = 0u64;
-    for line in util::read_lines(path).expect("Unable to read file") {
-        let expr = line.unwrap();
-        let num = evaluate(&expr);
-        tally += num as u64;
-    }
+    let tally = util::read_lines(path).unwrap()
+        .map(|line| evaluate(&line.unwrap()))
+        .sum::<i64>();
     println!("Total: {}", tally);
 }
 
@@ -102,26 +135,26 @@ mod tests {
 
     #[test]
     fn test0() {
-        assert_eq!(evaluate("1 + 2 * 3 + 4 * 5 + 6"), 71);
+        assert_eq!(evaluate("1 + 2 * 3 + 4 * 5 + 6"), 51);
     }
 
     #[test]
     fn test1() {
-        assert_eq!(evaluate("2 * 3 + (4 * 5)"), 26);
+        assert_eq!(evaluate("2 * 3 + (4 * 5)"), 46);
     }
 
     #[test]
     fn test2() {
-        assert_eq!(evaluate("5 + (8 * 3 + 9 + 3 * 4 * 3)"), 437);
+        assert_eq!(evaluate("5 + (8 * 3 + 9 + 3 * 4 * 3)"), 1445);
     }
 
     #[test]
     fn test3() {
-        assert_eq!(evaluate("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"), 12240);
+        assert_eq!(evaluate("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"), 669060);
     }
 
     #[test]
     fn test4() {
-        assert_eq!(evaluate("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2"), 13632);
+        assert_eq!(evaluate("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2"), 23340);
     }
 }
