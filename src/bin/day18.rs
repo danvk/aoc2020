@@ -17,14 +17,13 @@ enum Op {
     ADD
 }
 
-
-fn evaluate_expr(expr: Pair<Rule>) -> i32 {
+fn evaluate_expr(expr: Pair<Rule>) -> i64 {
     let mut last_op: Option<Op> = None;
     let mut tally = 0;
     for term in expr.into_inner() {
         match term.as_rule() {
             Rule::number => {
-                let num = term.as_str().trim().parse::<i32>().expect(&format!("Failed to parse '{}'", term.as_str()));
+                let num = term.as_str().trim().parse::<i64>().expect(&format!("Failed to parse '{}'", term.as_str()));
                 match last_op {
                     None => tally = num,
                     Some(Op::ADD) => tally += num,
@@ -61,7 +60,7 @@ fn evaluate_expr(expr: Pair<Rule>) -> i32 {
 }
 
 
-fn evaluate(text: &str) -> i32 {
+fn evaluate(text: &str) -> i64 {
     let expr = ExprParser::parse(Rule::calculation, text)
         .expect("unsuccessful parse") // unwrap the parse result
         .next().unwrap(); // get and unwrap the `file` rule; never fails
@@ -72,10 +71,13 @@ fn evaluate(text: &str) -> i32 {
 }
 
 fn process_file(path: &str) {
+    let mut tally = 0u64;
     for line in util::read_lines(path).expect("Unable to read file") {
         let expr = line.unwrap();
-        println!("{} -> {}", expr, evaluate(&expr));
+        let num = evaluate(&expr);
+        tally += num as u64;
     }
+    println!("Total: {}", tally);
 }
 
 // 2129 = too low
