@@ -40,7 +40,20 @@ fn evaluate_expr(expr: Pair<Rule>) -> i32 {
                 assert!(last_op.is_none());
                 last_op = Some(Op::MUL);
             },
-            _ => unreachable!("Unimplemented term")
+            Rule::expr => {
+                let num = evaluate_expr(term);
+                // TODO: merge w/ number arm
+                match last_op {
+                    None => tally = num,
+                    Some(Op::ADD) => tally += num,
+                    Some(Op::MUL) => tally *= num,
+                }
+                last_op = None;
+            },
+            _ => {
+                println!("term: {:?}", term);
+                unreachable!("Unimplemented term");
+            }
         }
     }
 
