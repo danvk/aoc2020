@@ -1,0 +1,14 @@
+number = {            // To recognize a number...
+    ASCII_DIGIT+      //   take as many ASCII digits as possible (at least one).
+}
+
+operation = _{ add | multiply }
+    add      = { "+" }
+    multiply = { "*" }
+
+expr = { term ~ (operation ~ term)* }
+term = _{ number | "(" ~ expr ~ ")" }
+
+calculation = _{ SOI ~ expr ~ EOI }
+
+WHITESPACE = _{ " " | "\t" }

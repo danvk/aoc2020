@@ -27,6 +27,7 @@ fn parse_grid(path: &str) -> Grid {
 
 lazy_static! {
     static ref DS: Vec<(i32, i32, i32, i32)> = {
+        // TODO: does Rust have a combinations() iterator?
         let mut v: Vec<(i32, i32, i32, i32)> = Vec::with_capacity(80);
         for dx in -1..=1 {
             for dy in -1..=1 {
