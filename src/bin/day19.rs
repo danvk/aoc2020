@@ -87,7 +87,7 @@ fn match_part2(text: &str, rules: &HashMap<i32, Rule>) -> bool {
     let mut paired31s: Vec<i32> = vec![];
     loop {
         if let Some(rest) = rule42.match_str(non42.unwrap(), rules, "") {
-            println!("Matched a 42! Down to {}", rest);
+            // println!("Matched a 42! Down to {}", rest);
             if rest.is_empty() {
                 return true;  // matches rule 8: all 42s!
             }
@@ -112,7 +112,7 @@ fn expand_rule(rule: &Rule, rules: &HashMap<i32, Rule>) -> HashSet<String> {
         Rule::Pattern(pats) => {
             for pat in pats {
                 let mut pieces = pat.iter().map(|i| expand_rule(&rules[i], rules)).collect::<Vec<_>>();
-                let mut poss = pieces.pop().unwrap();
+                let mut poss = pieces.remove(0);
                 for piece in pieces {
                     let x = poss.iter().cartesian_product(piece.iter());
                     poss = x.map(|(a, b)| {
@@ -128,43 +128,118 @@ fn expand_rule(rule: &Rule, rules: &HashMap<i32, Rule>) -> HashSet<String> {
     s
 }
 
-fn process_file(path: &str, part: &str) {
+fn match42s(text: &str, starts: &HashSet<String>) -> bool {
+    let n = starts.iter().next().unwrap().len();
+    let start = &text[..n];
+    if !starts.contains(start) {
+        return false;
+    }
+    let rest = &text[n..];
+
+    if rest.is_empty() {
+        true
+    } else {
+        match42s(rest, starts)
+    }
+}
+
+fn match4231s(text: &str, starts: &HashSet<String>, ends: &HashSet<String>) -> bool {
+    let n = starts.iter().next().unwrap().len();
+    if text.len() < 2 * n {
+        return false;
+    }
+    let start = &text[..n];
+    if !starts.contains(start) {
+        return false;
+    }
+    let end = &text[text.len() - n..];
+    if !ends.contains(end) {
+        return false;
+    }
+
+    let middle = &text[n..text.len()-n];
+    match4231s(middle, starts, ends)
+}
+
+fn match2(text: &str, starts: &HashSet<String>, ends: &HashSet<String>) -> bool {
+    // println!("{}", text);
+    let n = starts.iter().next().unwrap().len();
+    for start in starts {
+        assert_eq!(start.len(), n);
+    }
+    for end in ends {
+        assert_eq!(end.len(), n);
+        assert!(!starts.contains(end));
+    }
+
+    let mut num42 = 0;
+    let mut rest: &str = text;
+    while n <= rest.len() && starts.contains(&rest[..n]) {
+        // println!(" 42: {}", &rest[..n]);
+        rest = &rest[n..];
+        num42 += 1;
+    }
+
+    let mut num31 = 0;
+    while n <= rest.len() && ends.contains(&rest[..n]) {
+        // println!(" 31: {}", &rest[..n]);
+        rest = &rest[n..];
+        num31 += 1;
+    }
+
+    // println!(" 42: {}, 31: {}, rest: {}", num42, num31, rest);
+    rest == "" && num31 < num42 && num31 > 0 && num42 > 0
+    // num31 < num42 && num31 > 0 && num42 > 0
+}
+
+fn process_file(path: &str) {
     let contents = std::fs::read_to_string(path).unwrap();
     let chunks = contents.split("\n\n").collect::<Vec<_>>();
     assert_eq!(2, chunks.len());
 
-    let mut rules = parse_rules(&chunks[0]);
+    let rules = parse_rules(&chunks[0]);
 
+    // let r = rules[&rule_num].match_str(text, &rules, "");
+    // println!("{:?} {} {}", r, rule_num, text);
+    /*
     if part == "2" {
         println!("Swapping for part 2");
         rules.insert(8, Rule::Pattern(vec![vec![42], vec![42, 8]]));
         rules.insert(11, Rule::Pattern(vec![vec![42, 31], vec![42, 11, 31]]));
     }
+    */
 
-    let rules = rules;
+    // println!("Rules: {:?}", rules);
 
-    println!("Rules: {:?}", rules);
-    let rule0 = rules.get(&0).unwrap(); // why can't I do rules[0] here?
+    let rule42s = expand_rule(&rules[&42], &rules);
+    let rule31s = expand_rule(&rules[&31], &rules);
+    println!("42s ({}): {:?}", rule42s.len(), rule42s);
+    println!("31s ({}): {:?}", rule31s.len(), rule31s);
+    println!("len: {}", rule31s.iter().next().unwrap().len());
+
+    // let rule0 = rules.get(&0).unwrap(); // why can't I do rules[0] here?
 
     let mut num_ok = 0;
     for line in chunks[1].split('\n') {
         if line.is_empty() {
             continue;
         }
-        let is_ok = rule0.match_str(line, &rules, &"") == Some("");
-        println!("{}: {}", is_ok, line);
+        // let is_ok = rule0.match_str(line, &rules, &"") == Some("");
+        let is_ok = match2(line, &rule42s, &rule31s);
+        println!("{}: {}\n", is_ok, line);
         num_ok += if is_ok { 1 } else { 0 };
     }
     println!("Num OK: {}", num_ok);
+    // not 68
 }
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.len() != 3 {
-        panic!("Expected two arguments, got {}: {:?}", args.len(), args);
+    if args.len() != 2 {
+        panic!("Expected one argument, got {}: {:?}", args.len(), args);
     }
 
-    process_file(&args[1], &args[2]);
+    process_file(&args[1]);
 }
 
 

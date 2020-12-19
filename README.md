@@ -1,5 +1,9 @@
 # Notes on Advent of Code 2020
 
+## Day 19
+
+Pretty confused! I feel like I've figured it out, but I'm not seeing how their matching works out for the sample.
+
 ## Day 18
 
 One of my project ideas for learning some Rust was implementing an answer to [this question][cbc], a command-line calculator that ignores commas and dollar signs. I'd poked around at [pest][] a month ago, but it was a bit beyond my Rust abilities at the time. While a full parser generator is a bit overkill for this problem (certainly for part 1!) this seemed like a good opportunity to try again. I was pleasantly surprised that it was much easier to get it working this time. I must have learned some Rust in the past month!
