@@ -2,7 +2,28 @@
 
 ## Day 19
 
-Pretty confused! I feel like I've figured it out, but I'm not seeing how their matching works out for the sample.
+I half expected my part one solution to work for part 2, but I think it would require not being greedy.
+
+I thought about implementing some sort of lookahead to ensure that each instantiation of a rule consumed at least one character. But then I looked at the recursive rules and realized that there was a much simpler pattern. You need some 42s, and then a smaller number of 31s.
+
+At this point I felt pretty confused! I flet like I'd figured it out, but couldn't see how their matching worked out for the sample. I kept getting a smaller number of matches.
+
+Eventually I tracked it down to a bug in my code that found all the strings that matched a rule. I'd changed a `pieces[0]` to `pieces.pop()`, which had the effect of permuting some of the matches. It didn't throw me off enough to prevent the key insight to solve the problem (rules 31 and 42 match disjoint strings of the same length) but did give me confusingly-wrong answers.
+
+This one definitely took me the longest! As usual, more thorough unit tests might have caught the bug. I just thought I was misinterpreting the rules.
+
+On the plus side, I used my first lifetime annotation today!
+
+    fn match_str<'a>(&self, txt: &'a str, rules: &HashMap<i32, Rule>) -> Option<&'a str> {
+
+This consumes a `str` and returns a slice of it, so they have the same lifetime.
+
+I also learned about `r#""#`-style strings, which allow `"` characters in the raw string.
+
+Two issues I ran into today:
+
+- The borrow checker error that led to the signature above didn't show up in VS Code, even after restarting the Rust server. It only showed up as an error when I ran the program.
+- I'm getting quite annoyed at errors showing up after extremely long documentation strings. You have to scroll all the way down through several pages of text to see the error. And if you scroll even a pixel too far, the whole dialog goes away.
 
 ## Day 18
 

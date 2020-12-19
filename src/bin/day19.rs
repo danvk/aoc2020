@@ -18,9 +18,7 @@ impl Rule {
         if txt.is_empty() {
             return None;
         }
-        // TODO: surely there is a more idiomatic way to do this
-        // let mut next_indent: String = String::from(" ");
-        // next_indent.push_str(&indent);
+
         match self {
             Rule::Literal(c) => if txt.chars().next().unwrap_or(' ') == *c { Some(&txt[1..]) } else { None },
             Rule::Pattern(pats) => {
