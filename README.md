@@ -1,5 +1,15 @@
 # Notes on Advent of Code 2020
 
+## Day 18
+
+One of my project ideas for learning some Rust was implementing an answer to [this question][cbc], a command-line calculator that ignores commas and dollar signs. I'd poked around at [pest][] a month ago, but it was a bit beyond my Rust abilities at the time. While a full parser generator is a bit overkill for this problem (certainly for part 1!) this seemed like a good opportunity to try again. I was pleasantly surprised that it was much easier to get it working this time. I must have learned some Rust in the past month!
+
+There's a lot of macro magic involved in Pest. It works, but one downside is that you completely lose the types in your editor:
+
+![unknown type](screenshots/pest-unknown.png)
+
+
+
 ## Day 17
 
 The trick I learned [last year][2019] of representing grids using maps from coordinate tuples to values made this one a lot easier! Almost no change from part 1 to part 2. The only trick was making sure you considered the next state for all _neighbors_, not all cells.
@@ -258,3 +268,6 @@ rather than any of these:
 [2]: https://stackoverflow.com/questions/24542115/how-to-index-a-string-in-rust
 [re]: https://docs.rs/regex/1.4.2/regex/
 [2019]: https://medium.com/@danvdk/python-tips-tricks-for-the-advent-of-code-2019-89ec23a595dd
+[cbc]: https://softwarerecs.stackexchange.com/q/75993/69199
+[pest]: https://pest.rs
+[pest-intro]: https://pest.rs/book/intro.html
