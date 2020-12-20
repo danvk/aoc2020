@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use itertools::Itertools;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct Tile {
     id: u64,
     px: Vec<Vec<bool>>,
@@ -33,17 +33,37 @@ fn parse_tile(tile: &str) -> Tile {
     let tile_cap = TILE_RE.captures(title).unwrap();
     let id: u64 = tile_cap[1].parse().unwrap();
 
-    let px = lines.map(|line| line.chars().map(|c| c == '#').collect()).collect();
+    let px: Vec<Vec<_>> = lines.map(|line| line.trim().chars().map(|c| c == '#').collect()).collect();
+    let top = to_mask(&px[0]);
+    let bottom = to_mask(px.last().unwrap());
+    let left = to_mask(&px.iter().map(|row| row[0]).collect::<Vec<_>>());
+    let right = to_mask(&px.iter().map(|row| *row.last().unwrap()).collect::<Vec<_>>());
 
     Tile {
         id,
         px,
-        left: 0,
-        right: 0,
-        top: to_mask(&px[0]),
-        bottom: 0,
+        left,
+        right,
+        top,
+        bottom,
     }
 }
+
+enum Op {
+    FlipVert,
+    FlipHoriz,
+    Rot90,
+    Rot180,
+    Rot270,
+}
+
+/*
+fn transform(tile: &Tile, op: &Op) -> Tile {
+    match op {
+
+    }
+}
+*/
 
 fn process_file(path: &str) {
     let contents = std::fs::read_to_string(path).unwrap();
@@ -67,4 +87,30 @@ fn main() {
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
+
+    #[test]
+    fn test_parse_tile() {
+        let tile = parse_tile(r#"Tile 2311:
+        ..##.#
+        ##..#.
+        #...##
+        ####.#
+        ##.##.
+        ##...#"#);
+        assert_eq!(tile, Tile {
+            id: 2311,
+            px: vec![
+                vec![false, false, true, true, false, true],
+                vec![true, true, false, false, true, false],
+                vec![true, false, false, false, true, true],
+                vec![true, true, true, true, false, true],
+                vec![true, true, false, true, true, false],
+                vec![true, true, false, false, false, true],
+            ],
+            top: 1 + 4 + 8,
+            bottom: 1 + 16 + 32,
+            left: 1 + 2 + 4 + 8 + 16,
+            right: 1 + 4 + 8 + 32,
+        });
+    }
 }
