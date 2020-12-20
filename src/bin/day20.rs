@@ -74,6 +74,18 @@ macro_rules! set(
      };
 );
 
+macro_rules! map(
+    { $($key:expr => $val:expr),+ } => {
+        {
+            let mut m = ::std::collections::HashMap::new();
+            $(
+                m.insert($key, $val);
+            )+
+            m
+        }
+     };
+);
+
 fn masks(tile: &Tile) -> HashSet<u32> {
     set!{tile.left, tile.right, tile.top, tile.bottom}
 }
@@ -91,7 +103,7 @@ fn possible_masks(tile: &Tile) -> HashSet<u32> {
     masks(tile).union(&flipped_masks(tile)).map(|x| *x).collect()
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 enum Op {
     Identity,
     FlipVert,
@@ -102,6 +114,17 @@ enum Op {
     FlipDiagTLBR,
     FlipDiagBLTR
 }
+
+const OPS: [Op; 8] = [
+    Op::Identity,
+    Op::FlipVert,
+    Op::FlipHoriz,
+    Op::Rot90,
+    Op::Rot180,
+    Op::Rot270,
+    Op::FlipDiagTLBR,
+    Op::FlipDiagBLTR
+];
 
 fn rot90(px: &Vec<Vec<bool>>) -> Vec<Vec<bool>> {
     let n = px.len();
@@ -236,6 +259,77 @@ fn add_to_bottom(top: &Tile, bottom: &Tile) -> Option<Op> {
     None
 }
 
+fn print_grid(grid: &HashMap<(i32, i32), Tile>, n: i32) {
+    for y in 0..n {
+        println!("{}", (0..n).map(
+            |x| grid.get(&(x, y)).map_or(String::from(""), |t| t.id.to_string())
+        ).join(", "));
+    }
+}
+
+fn fill_grid(tiles: &[Tile], top_left: &Tile, right: &Tile, below: &Tile, neighbors: HashMap<u64, Vec<&Tile>>) -> HashMap<(i32, i32), Tile> {
+    let n = (tiles.len() as f64).sqrt() as i32;
+    let mut used = set!{top_left.id, right.id, below.id};
+    let id_to_tile = tiles.iter().map(|t| (t.id, t)).collect::<HashMap<u64, &Tile>>();
+
+    // These three should be enough to orient the grid
+    let mut grid = map! {
+        (0, 0) => top_left.clone(),
+        (1, 0) => right.clone(),
+        (0, 1) => below.clone()
+    };
+
+    let neighbs = |id, u: &HashSet<u64>| {
+        neighbors[&id].iter().filter(|&n| !u.contains(&n.id)).map(|x| *x).collect_vec()
+    };
+
+    // n = 3
+    // diag = 4
+    for diag in 2..(2*n - 1) {
+        if diag < n {
+            let bottom = grid.get(&(0, diag - 1)).unwrap();
+            let bottoms = neighbs(bottom.id, &used).iter()
+                .filter_map(
+                    |t| add_to_bottom(bottom, t)
+                        .and_then(|op| Some(transform_tile(t, op)))
+                ).collect_vec();
+            assert_eq!(1, bottoms.len());
+            grid.insert((0, diag), bottoms[0].clone());
+
+            let right = grid.get(&(diag - 1, 0)).unwrap();
+            let rights = neighbs(right.id, &used).iter()
+                .filter_map(
+                    |t| add_to_right(right, t)
+                        .and_then(|op| Some(transform_tile(t, op)))
+                ).collect_vec();
+            assert_eq!(1, rights.len());
+            grid.insert((diag, 0), rights[0].clone());
+        }
+
+        for x in 0..n {
+            let y = diag - x;
+            if 0 <= y && y < n && !grid.contains_key(&(x, y)) {
+                // Find the (unique) tile that can go at (x, y)
+                let left = grid.get(&(x - 1, y)).unwrap();
+                let above = grid.get(&(x, y - 1)).unwrap();
+                let left_ids = neighbs(left.id, &used).iter().map(|t| t.id).collect::<HashSet<_>>();
+                let above_ids = neighbs(above.id, &used).iter().map(|t| t.id).collect::<HashSet<_>>();
+                let ids = left_ids.intersection(&above_ids).collect_vec();
+                if ids.len() != 1 {
+                    panic!("Impossible situation: ({}, {}) => {} candidates", x, y, ids.len());
+                }
+                let t = id_to_tile[ids[0]];
+                if let Some(op) = add_to_right(left, t) {
+                    grid.insert((x, y), transform_tile(t, op));
+                    used.insert(t.id);
+                }
+            }
+        }
+    }
+
+    grid
+}
+
 fn process_file(path: &str) {
     let contents = std::fs::read_to_string(path).unwrap();
     let chunks = contents.split("\n\n").collect::<Vec<_>>();
@@ -248,18 +342,48 @@ fn process_file(path: &str) {
     // println!("# distinct edges: {}", edges.len());
 
     let mask_to_tiles = index_tiles(&tiles);
+    let id_to_tile = tiles.iter().map(|t| (t.id, t)).collect::<HashMap<u64, &Tile>>();
 
-    let mut corners: Vec<u64> = vec![];
+    let mut neighbor_map = HashMap::new();
+    let mut corners: Vec<&Tile> = vec![];
     for (i, tile) in tiles.iter().enumerate() {
         let neighbors = possible_neighbors(&tile, &mask_to_tiles).iter().map(|t| t.id).collect_vec();
         println!("{} {} -> {:?}", i, tile.id, neighbors);
         if neighbors.len() == 2 {
-            corners.push(tile.id);
+            corners.push(tile);
         }
+        neighbor_map.insert(tile.id, neighbors.iter().map(|id| id_to_tile[id]).collect_vec());
     }
 
-    println!("Corners: {:?}", corners);
-    println!("Product: {}", corners.iter().product::<u64>());
+    println!("Corners: {:?}", corners.iter().map(|t| t.id).collect_vec());
+    println!("Product: {}", corners.iter().map(|t| t.id).product::<u64>());
+
+    assert_eq!(corners.len(), 4);
+    let top_left = corners[0];
+    let tln = possible_neighbors(top_left, &mask_to_tiles);
+    assert_eq!(2, tln.len());
+    // TODO: why can't I move out of this vector?
+    let mut tln0 = tln[0].clone();
+    let mut tln1 = tln[1].clone();
+    let tl_tile = OPS.iter().find_map(|&op| {
+        let t = transform_tile(top_left, op);
+        let op0 = add_to_right(&t, &tln0);
+        let op1 = add_to_bottom(&t, &tln1);
+        if op0.is_some() && op1.is_some() {
+            println!("top left: {}", t.id);
+            println!("      op: {:?}", op);
+            println!("   right: {} {:?}", tln0.id, op0);
+            println!("  bottom: {} {:?}", tln1.id, op1);
+            tln0 = transform_tile(&tln0, op0.unwrap());
+            tln1 = transform_tile(&tln1, op1.unwrap());
+            return Some(t);
+        }
+        return None;
+    }).unwrap();
+
+    let n = (tiles.len() as f64).sqrt() as i32;
+    let grid = fill_grid(&tiles, &tl_tile, &tln0, &tln1, neighbor_map);
+    print_grid(&grid, n);
 }
 
 fn main() {
