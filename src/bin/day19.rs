@@ -213,6 +213,18 @@ mod tests {
         strs.iter().map(|&x| String::from(x)).collect()
     }
 
+    macro_rules! set(
+        { $($key:expr),+ } => {
+            {
+                let mut m = ::std::collections::HashSet::new();
+                $(
+                    m.insert(String::from($key));
+                )+
+                m
+            }
+         };
+    );
+
     #[test]
     fn test_expand() {
         let rules = parse_rules(r#"0: 4 1 5
@@ -225,7 +237,8 @@ mod tests {
         assert_eq!(expand_rule(&rules[&4], &rules), HashSet::from_iter(vec![String::from("a")]));
         assert_eq!(
             expand_rule(&rules[&3], &rules),
-            hashset(&vec!["ab", "ba"]),
+            set!("ab", "ba"),
+            // hashset(&vec!["ab", "ba"]),
         );
         assert_eq!(
             expand_rule(&rules[&2], &rules),
