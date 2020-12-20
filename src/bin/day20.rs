@@ -98,6 +98,8 @@ enum Op {
     Rot90,
     Rot180,
     Rot270,
+    FlipDiagTLBR,
+    FlipDiagBLTR
 }
 
 fn rot90(px: &Vec<Vec<bool>>) -> Vec<Vec<bool>> {
@@ -153,11 +155,9 @@ fn transform_tile(tile: &Tile, op: Op) -> Tile {
         Op::Rot180 => transform_tile(&transform_tile(tile, Op::Rot90), Op::Rot90),
         // TODO: I think this is a flip + rotate?
         Op::Rot270 => transform_tile(&transform_tile(&transform_tile(tile, Op::Rot90), Op::Rot90), Op::Rot90),
+        Op::FlipDiagTLBR => transform_tile(&transform_tile(tile, Op::Rot90), Op::FlipHoriz),
+        Op::FlipDiagBLTR => transform_tile(&transform_tile(tile, Op::Rot90), Op::FlipVert),
     }
-}
-
-fn grid_to_str(px: &Vec<Vec<bool>>) -> String {
-    px.iter().map(|row| row.iter().map(|c| if *c { '#' } else { '.' }).collect::<String>()).join("\n")
 }
 
 fn index_tiles(tiles: &[Tile]) -> HashMap<u32, Vec<&Tile>> {
@@ -182,6 +182,31 @@ fn possible_neighbors<'a>(tile: &Tile, index: &'a HashMap<u32, Vec<&Tile>>) -> V
         }
     }
     out
+}
+
+fn add_to_right(left: &Tile, right: &Tile) -> Option<Op> {
+    let n = left.px.len() as u32;
+    let mask = left.right;
+    let mask_flip = flip_bits(mask, n);
+    if right.left == mask {
+        return Some(Op::Identity);
+    } else if right.left == mask_flip {
+        return Some(Op::FlipVert);
+    } else if right.bottom == mask {
+        return Some(Op::Rot90);
+    } else if right.bottom == mask_flip {
+        return Some(Op::FlipDiagBLTR);
+    } else if right.right == mask {
+        return Some(Op::FlipHoriz);
+    } else if right.right == mask_flip {
+        return Some(Op::Rot180);
+    } else if right.top == mask {
+        return Some(Op::FlipDiagTLBR);
+    } else if right.top == mask_flip {
+        return Some(Op::Rot270);
+    }
+
+    None
 }
 
 fn process_file(path: &str) {
@@ -285,6 +310,10 @@ mod tests {
         );
     }
 
+    fn grid_to_str(px: &Vec<Vec<bool>>) -> String {
+        px.iter().map(|row| row.iter().map(|c| if *c { '#' } else { '.' }).collect::<String>()).join("\n")
+    }
+
     #[test]
     fn test_rot() {
         let px = parse_grid(
@@ -331,6 +360,18 @@ mod tests {
                ###
                #..
                ..#"
+        ));
+        assert_eq!(transform_tile(&tile, Op::FlipDiagTLBR), parse_tile(
+            &r"Tile 123:
+               ###
+               ..#
+               #.."
+        ));
+        assert_eq!(transform_tile(&tile, Op::FlipDiagBLTR), parse_tile(
+            &r"Tile 123:
+               ..#
+               #..
+               ###"
         ));
     }
 }
