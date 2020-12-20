@@ -91,6 +91,7 @@ fn possible_masks(tile: &Tile) -> HashSet<u32> {
     masks(tile).union(&flipped_masks(tile)).map(|x| *x).collect()
 }
 
+#[derive(Debug, PartialEq)]
 enum Op {
     Identity,
     FlipVert,
@@ -373,5 +374,39 @@ mod tests {
                #..
                ###"
         ));
+    }
+
+    #[test]
+    fn test_add_to_right() {
+        let left = parse_tile(
+            &r"Tile 123:
+               #.#
+               #..
+               ##.");
+
+        assert_eq!(add_to_right(
+            &left,
+            &parse_tile(
+                &r"Tile 2:
+                   ###
+                   .#.
+                   .##")), Some(Op::Identity));
+
+        assert_eq!(add_to_right(
+        &left,
+        &parse_tile(
+            &r"Tile 2:
+                ...
+                #..
+                #..")), Some(Op::Rot90));
+
+
+        assert_eq!(add_to_right(
+            &left,
+            &parse_tile(
+                &r"Tile 2:
+                    #..
+                    ###
+                    #.#")), Some(Op::FlipDiagTLBR));
     }
 }
