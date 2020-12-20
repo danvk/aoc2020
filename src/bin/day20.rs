@@ -113,12 +113,12 @@ fn index_tiles(tiles: &[Tile]) -> HashMap<u32, Vec<&Tile>> {
     out
 }
 
-fn possible_neighbors(tile: &Tile, index: &HashMap<u32, Vec<&Tile>>) -> Vec<&Tile> {
-    let out: Vec<&Tile> = vec![];
-    let ids = set!{tile.id};
+fn possible_neighbors<'a>(tile: &Tile, index: &'a HashMap<u32, Vec<&Tile>>) -> Vec<&'a Tile> {
+    let mut out: Vec<&Tile> = vec![];
+    let mut ids = set!{tile.id};
     for mask in masks(tile) {
-        for other in index.get(mask).unwrap_or(vec![]) {
-            if !ids.contains(other.id) {
+        for other in index.get(&mask).unwrap_or(&vec![]) {
+            if !ids.contains(&other.id) {
                 out.push(other);
                 ids.insert(other.id);
             }
@@ -140,9 +140,17 @@ fn process_file(path: &str) {
 
     let mask_to_tiles = index_tiles(&tiles);
 
+    let mut corners: Vec<u64> = vec![];
     for (i, tile) in tiles.iter().enumerate() {
-        println!("{} {} -> {:?}", i, tile.id, possible_neighbors(&tile, &mask_to_tiles).iter().map(|t| t.id).collect_vec());
+        let neighbors = possible_neighbors(&tile, &mask_to_tiles).iter().map(|t| t.id).collect_vec();
+        println!("{} {} -> {:?}", i, tile.id, neighbors);
+        if neighbors.len() == 2 {
+            corners.push(tile.id);
+        }
     }
+
+    println!("Corners: {:?}", corners);
+    println!("Product: {}", corners.iter().product::<u64>());
 }
 
 fn main() {
