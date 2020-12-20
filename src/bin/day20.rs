@@ -160,6 +160,46 @@ fn transform_px(px: &Vec<Vec<bool>>, op: Op) -> Vec<Vec<bool>> {
     }
 }
 
+/// Returns the number of non-dragon cells, or None if there are no dragons.
+fn find_dragons(px: &Vec<Vec<bool>>) -> Option<usize> {
+    // 0         1
+    // 01234567890123456789
+    //                   #
+    // #    ##    ##    ###
+    //  #  #  #  #  #  #
+    let drag = set! {
+        (18, 0),
+        (0, 1), (5, 1), (6, 1), (11, 1), (12, 1), (17, 1), (18, 1), (19, 1),
+        (1, 2), (4, 2), (7, 2), (10, 2), (13, 2), (16, 2)
+    };
+
+    let g = px.iter().enumerate().flat_map(
+        |(y, row)| row.iter().enumerate().filter_map(
+            |(x, v)| if *v { Some((x as i32, y as i32)) } else { None }
+        ).collect_vec()
+    ).collect::<HashSet<_>>();
+
+    let mut num_drag = 0;
+    let mut in_drag = HashSet::new();
+    let n = px.len() as i32;
+    for y in 0..n {
+        for x in 0..n {
+            if drag.iter().all(|(dx, dy)| g.contains(&(x + dx, y + dy))) {
+                num_drag += 1;
+                for (dx, dy) in drag.iter() {
+                    in_drag.insert((x + dx, y + dy));
+                }
+            }
+        }
+    }
+
+    if num_drag > 0 {
+        Some(g.len() - in_drag.len())
+    } else {
+        None
+    }
+}
+
 // TODO: make this call transform_px
 fn transform_tile(tile: &Tile, op: Op) -> Tile {
     let n = tile.px.len() as u32;
@@ -436,6 +476,11 @@ fn process_file(path: &str) {
 
     let pat = transform_px(&chop_and_assemble(&grid, n), Op::FlipDiagTLBR);
     println!("Grid:\n{}", grid_to_str(&pat));
+
+    for &op in OPS.iter() {
+        let p = transform_px(&pat, op);
+        println!("Non-Dragons ({:?}): {:?}", op, find_dragons(&p));
+    }
 }
 
 fn main() {
