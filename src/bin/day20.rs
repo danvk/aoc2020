@@ -156,6 +156,7 @@ fn transform_tile(tile: &Tile, op: Op) -> Tile {
         Op::Rot180 => transform_tile(&transform_tile(tile, Op::Rot90), Op::Rot90),
         // TODO: I think this is a flip + rotate?
         Op::Rot270 => transform_tile(&transform_tile(&transform_tile(tile, Op::Rot90), Op::Rot90), Op::Rot90),
+        // TODO: These could be implemented more efficiently
         Op::FlipDiagTLBR => transform_tile(&transform_tile(tile, Op::Rot90), Op::FlipHoriz),
         Op::FlipDiagBLTR => transform_tile(&transform_tile(tile, Op::Rot90), Op::FlipVert),
     }
@@ -205,6 +206,31 @@ fn add_to_right(left: &Tile, right: &Tile) -> Option<Op> {
         return Some(Op::FlipDiagTLBR);
     } else if right.top == mask_flip {
         return Some(Op::Rot270);
+    }
+
+    None
+}
+
+fn add_to_bottom(top: &Tile, bottom: &Tile) -> Option<Op> {
+    let n = top.px.len() as u32;
+    let mask = top.bottom;
+    let mask_flip = flip_bits(mask, n);
+    if bottom.top == mask {
+        return Some(Op::Identity);
+    } else if bottom.top == mask_flip {
+        return Some(Op::FlipHoriz);
+    } else if bottom.left == mask {
+        return Some(Op::FlipDiagTLBR);
+    } else if bottom.left == mask_flip {
+        return Some(Op::Rot90);
+    } else if bottom.bottom == mask {
+        return Some(Op::FlipVert);
+    } else if bottom.bottom == mask_flip {
+        return Some(Op::Rot180);
+    } else if bottom.right == mask {
+        return Some(Op::Rot270);
+    } else if bottom.right == mask_flip {
+        return Some(Op::FlipDiagBLTR);
     }
 
     None
@@ -400,7 +426,6 @@ mod tests {
                 #..
                 #..")), Some(Op::Rot90));
 
-
         assert_eq!(add_to_right(
             &left,
             &parse_tile(
@@ -408,5 +433,30 @@ mod tests {
                     #..
                     ###
                     #.#")), Some(Op::FlipDiagTLBR));
+    }
+
+    #[test]
+    fn test_add_to_bottom() {
+        let top = parse_tile(
+            &r"Tile 123:
+               #.#
+               #..
+               ##.");
+
+        assert_eq!(add_to_bottom(
+            &top,
+            &parse_tile(
+                &r"Tile 2:
+                   ##.
+                   #..
+                   #.#")), Some(Op::Identity));
+
+        assert_eq!(add_to_bottom(
+            &top,
+            &parse_tile(
+                &r"Tile 123:
+                   #.#
+                   #..
+                   ##.")), Some(Op::FlipVert));
     }
 }
