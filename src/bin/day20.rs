@@ -128,7 +128,7 @@ const OPS: [Op; 8] = [
 
 fn rot90(px: &Vec<Vec<bool>>) -> Vec<Vec<bool>> {
     let n = px.len();
-    let mut out = ((0..n).map(|y| vec![false; n])).collect_vec();
+    let mut out = ((0..n).map(|_y| vec![false; n])).collect_vec();
 
     for (y, row) in px.iter().enumerate() {
         for (x, v) in row.iter().enumerate() {
@@ -145,6 +145,22 @@ fn rot90(px: &Vec<Vec<bool>>) -> Vec<Vec<bool>> {
     out
 }
 
+fn transform_px(px: &Vec<Vec<bool>>, op: Op) -> Vec<Vec<bool>> {
+    match op {
+        Op::Identity => px.clone(),
+        Op::FlipVert => px.iter().rev().map(|row| row.clone()).collect_vec(),
+        Op::FlipHoriz => px.iter().map(
+            |row| row.iter().rev().map(|b| *b).collect_vec()
+        ).collect_vec(),
+        Op::Rot90 => rot90(&px),
+        Op::Rot180 => rot90(&rot90(&px)),
+        Op::Rot270 => rot90(&rot90(&rot90(&px))),
+        Op::FlipDiagTLBR => transform_px(&transform_px(px, Op::Rot90), Op::FlipHoriz),
+        Op::FlipDiagBLTR => transform_px(&transform_px(px, Op::Rot90), Op::FlipVert),
+    }
+}
+
+// TODO: make this call transform_px
 fn transform_tile(tile: &Tile, op: Op) -> Tile {
     let n = tile.px.len() as u32;
     let Tile {id, left, right, top, bottom, px: _} = *tile;
@@ -267,6 +283,31 @@ fn print_grid(grid: &HashMap<(i32, i32), Tile>, n: i32) {
     }
 }
 
+fn chop_and_assemble(grid: &HashMap<(i32, i32), Tile>, n: i32) -> Vec<Vec<bool>> {
+    let s = 10i32;
+    let mut g: HashSet::<(i32, i32)> = HashSet::new();
+    for x in 0..n {
+        for y in 0..n {
+            let t = grid.get(&(x, y)).unwrap();
+            let px = &t.px;
+            // Chop off the sides
+            for i in 1..s-1 {
+                for j in 1..s-1 {
+                    if px[j as usize][i as usize] {
+                        g.insert(((s-2)*x + (i - 1), (s-2)*y + (j - 1)));
+                    }
+                }
+            }
+        }
+    }
+
+    (0..(s-2)*n).map(|y|
+        (0..(s-2)*n).map(|x|
+            g.contains(&(x, y))
+        ).collect_vec()
+    ).collect_vec()
+}
+
 fn fill_grid(tiles: &[Tile], top_left: &Tile, right: &Tile, below: &Tile, neighbors: HashMap<u64, Vec<&Tile>>) -> HashMap<(i32, i32), Tile> {
     let n = (tiles.len() as f64).sqrt() as i32;
     let mut used = set!{top_left.id, right.id, below.id};
@@ -334,6 +375,10 @@ fn fill_grid(tiles: &[Tile], top_left: &Tile, right: &Tile, below: &Tile, neighb
     grid
 }
 
+fn grid_to_str(px: &Vec<Vec<bool>>) -> String {
+    px.iter().map(|row| row.iter().map(|c| if *c { '#' } else { '.' }).collect::<String>()).join("\n")
+}
+
 fn process_file(path: &str) {
     let contents = std::fs::read_to_string(path).unwrap();
     let chunks = contents.split("\n\n").collect::<Vec<_>>();
@@ -388,6 +433,9 @@ fn process_file(path: &str) {
     let n = (tiles.len() as f64).sqrt() as i32;
     let grid = fill_grid(&tiles, &tl_tile, &tln0, &tln1, neighbor_map);
     print_grid(&grid, n);
+
+    let pat = transform_px(&chop_and_assemble(&grid, n), Op::FlipDiagTLBR);
+    println!("Grid:\n{}", grid_to_str(&pat));
 }
 
 fn main() {
@@ -463,10 +511,6 @@ mod tests {
                 vec![true, true, false, false, false, true],
             ]
         );
-    }
-
-    fn grid_to_str(px: &Vec<Vec<bool>>) -> String {
-        px.iter().map(|row| row.iter().map(|c| if *c { '#' } else { '.' }).collect::<String>()).join("\n")
     }
 
     #[test]
