@@ -1,5 +1,21 @@
 # Notes on Advent of Code 2020
 
+## Day 20
+
+Today was pretty rough! I think my whole approach was more or less fine, it was just a slog to implement all the rotations and flips. I wound up writing out all the transformations (flips + rotates) on paper to make sure I got them right. After yesterday's experience, I was being careful.
+
+The one clever thing I did was checking how many possible neighbors there were for each cell. For both the sample and my input, there were exactly four tiles with only two possible neighbors. Since part one only required the product of the tile IDs in the corners, that was enough. I didn't have to solve the puzzle to get my star. So I beat Jack and Jeremy to the first star!
+
+For the second part, I figured I could pick an arbitrary corner tile as the top left and figure out how to attach the neighbors to its right and bottom. That would set the orientation for the whole puzzle. Then I could push out my solution diagonally towards the bottom right. This worked great, it just took me a while to implement and get it right.
+
+In retrospect, I should have just stored the cells in a tile and made `left()`, `right()` etc. be methods. This didn't wind up being a performance-sensitive problem.
+
+Rust notes:
+- Wrote macros for `map!` and `set!` literals in `util.rs`. For some reason these are `aoc2020::map` and not `aoc2020::util::map`.
+- It's confusing to me when you can do `for &x in ...` and when you can't.
+- `.collect`ing an iterator of pairs into a hash map is a pretty neat pattern.
+- I think "Missing lifetime annotation" errors don't show up in VS Code and prevent any other errors from showing up, either.
+
 ## Day 19
 
 I half expected my part one solution to work for part 2, but I think it would require not being greedy.
