@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate lazy_static;
+use aoc2020::{map, set};
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::env;
@@ -56,35 +57,6 @@ fn parse_tile(tile: &str) -> Tile {
         bottom,
     }
 }
-
-fn hashset(xs: &[u32]) -> HashSet<u32> {
-    xs.iter().map(|&x| x).collect()
-}
-
-// TODO: move this into utils.rs
-macro_rules! set(
-    { $($key:expr),+ } => {
-        {
-            let mut m = ::std::collections::HashSet::new();
-            $(
-                m.insert($key);
-            )+
-            m
-        }
-     };
-);
-
-macro_rules! map(
-    { $($key:expr => $val:expr),+ } => {
-        {
-            let mut m = ::std::collections::HashMap::new();
-            $(
-                m.insert($key, $val);
-            )+
-            m
-        }
-     };
-);
 
 fn masks(tile: &Tile) -> HashSet<u32> {
     set!{tile.left, tile.right, tile.top, tile.bottom}
@@ -212,7 +184,7 @@ fn transform_tile(tile: &Tile, op: Op) -> Tile {
             bottom: top,
             left: flip_bits(left, n),
             right: flip_bits(right, n),
-            px: tile.px.iter().rev().map(|row| row.clone()).collect_vec(),
+            px: transform_px(&tile.px, op),
         },
         Op::FlipHoriz => Tile {
             id,
@@ -220,9 +192,7 @@ fn transform_tile(tile: &Tile, op: Op) -> Tile {
             bottom: flip_bits(bottom, n),
             left: right,
             right: left,
-            px: tile.px.iter().map(
-                |row| row.iter().rev().map(|b| *b).collect_vec()
-            ).collect_vec(),
+            px: transform_px(&tile.px, op),
         },
         Op::Rot90 => Tile {
             id,
@@ -230,7 +200,7 @@ fn transform_tile(tile: &Tile, op: Op) -> Tile {
             right: top,
             bottom: flip_bits(right, n),
             left: bottom,
-            px: rot90(&tile.px),
+            px: transform_px(&tile.px, op),
         },
         Op::Rot180 => transform_tile(&transform_tile(tile, Op::Rot90), Op::Rot90),
         // TODO: I think this is a flip + rotate?
