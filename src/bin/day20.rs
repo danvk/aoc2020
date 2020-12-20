@@ -294,7 +294,9 @@ fn fill_grid(tiles: &[Tile], top_left: &Tile, right: &Tile, below: &Tile, neighb
                         .and_then(|op| Some(transform_tile(t, op)))
                 ).collect_vec();
             assert_eq!(1, bottoms.len());
-            grid.insert((0, diag), bottoms[0].clone());
+            let b = &bottoms[0];
+            grid.insert((0, diag), b.clone());
+            used.insert(b.id);
 
             let right = grid.get(&(diag - 1, 0)).unwrap();
             let rights = neighbs(right.id, &used).iter()
@@ -303,7 +305,9 @@ fn fill_grid(tiles: &[Tile], top_left: &Tile, right: &Tile, below: &Tile, neighb
                         .and_then(|op| Some(transform_tile(t, op)))
                 ).collect_vec();
             assert_eq!(1, rights.len());
-            grid.insert((diag, 0), rights[0].clone());
+            let r = &rights[0];
+            grid.insert((diag, 0), r.clone());
+            used.insert(r.id);
         }
 
         for x in 0..n {
