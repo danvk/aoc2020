@@ -88,11 +88,7 @@ fn expand_rule(rule: &Rule, rules: &HashMap<i32, Rule>) -> HashSet<String> {
                 let mut poss = pieces.remove(0);
                 for piece in pieces {
                     let x = poss.iter().cartesian_product(piece.iter());
-                    poss = x.map(|(a, b)| {
-                        let mut s = a.to_owned();
-                        s.push_str(b);
-                        s
-                    }).collect();
+                    poss = x.map(|(a, b)| format!("{}{}", a, b)).collect();
                 }
                 s.extend(poss);
             }
@@ -180,9 +176,9 @@ mod tests {
     #[test]
     fn test0() {
         let rules = parse_rules(r#"0: 1 2
-1: "a"
-2: 1 3 | 3 1
-3: "b""#);
+        1: "a"
+        2: 1 3 | 3 1
+        3: "b""#);
         let rule0 = &rules[&0];
         println!("rules: {:?}", rules);
         // aab or aba
@@ -195,11 +191,11 @@ mod tests {
     #[test]
     fn test1() {
         let rules = parse_rules(r#"0: 4 1 5
-1: 2 3 | 3 2
-2: 4 4 | 5 5
-3: 4 5 | 5 4
-4: "a"
-5: "b""#);
+        1: 2 3 | 3 2
+        2: 4 4 | 5 5
+        3: 4 5 | 5 4
+        4: "a"
+        5: "b""#);
         let rule0 = &rules[&0];
         println!("rules: {:?}", rules);
         // ababbb and abbbab match, but
@@ -213,6 +209,10 @@ mod tests {
 
     use std::iter::FromIterator;
 
+    fn hashset(strs: &Vec<&str>) -> HashSet<String> {
+        strs.iter().map(|&x| String::from(x)).collect()
+    }
+
     #[test]
     fn test_expand() {
         let rules = parse_rules(r#"0: 4 1 5
@@ -225,23 +225,23 @@ mod tests {
         assert_eq!(expand_rule(&rules[&4], &rules), HashSet::from_iter(vec![String::from("a")]));
         assert_eq!(
             expand_rule(&rules[&3], &rules),
-            HashSet::from_iter(vec![String::from("ab"), String::from("ba")])
+            hashset(&vec!["ab", "ba"]),
         );
         assert_eq!(
             expand_rule(&rules[&2], &rules),
-            HashSet::from_iter(vec![String::from("aa"), String::from("bb")])
+            hashset(&vec!["aa", "bb"])
         );
         assert_eq!(
             expand_rule(&rules[&1], &rules),
-            HashSet::from_iter(vec![
-                String::from("aaab"),
-                String::from("aaba"),
-                String::from("bbab"),
-                String::from("bbba"),
-                String::from("abaa"),
-                String::from("abbb"),
-                String::from("baaa"),
-                String::from("babb"),
+            hashset(&vec![
+                "aaab",
+                "aaba",
+                "bbab",
+                "bbba",
+                "abaa",
+                "abbb",
+                "baaa",
+                "babb",
             ])
         );
     }
