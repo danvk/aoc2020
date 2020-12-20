@@ -27,6 +27,10 @@ fn to_mask(bits: &[bool]) -> u32 {
     bits.iter().fold(0, |acc, x| 2 * acc + if *x { 1 } else { 0 })
 }
 
+fn flip_bits(bits: u32, n: u32) -> u32 {
+    (0..n).map(|i| ((bits & (1 << i)) >> i) << (n - 1 - i)).sum()
+}
+
 fn parse_tile(tile: &str) -> Tile {
     let mut lines = tile.lines();
     let title = lines.next().unwrap();
@@ -71,6 +75,10 @@ fn process_file(path: &str) {
 
     let tiles = chunks.iter().map(|chunk| parse_tile(chunk)).collect::<Vec<_>>();
 
+    let edges = tiles.iter().flat_map(|tile| vec![tile.left, tile.right, tile.top, tile.bottom]).collect::<HashSet<_>>();
+
+    println!("# tiles: {}", tiles.len());
+    println!("# distinct edges: {}", edges.len());
 }
 
 fn main() {
@@ -80,6 +88,10 @@ fn main() {
     }
 
     process_file(&args[1]);
+
+    // Sample: 9 tiles, 27 distinct edges
+    // Input: 144 tiles, 446 distinct edges
+    // Tiles are 10x10
 }
 
 
@@ -112,5 +124,15 @@ mod tests {
             left: 1 + 2 + 4 + 8 + 16,
             right: 1 + 4 + 8 + 32,
         });
+    }
+
+    #[test]
+    fn test_flip_bits() {
+        // assert_eq!(flip_bits(0b1, 1), vec![0b1]);
+        // assert_eq!(flip_bits(0b10, 2), vec![0, 0b01]);
+        // assert_eq!(flip_bits(0b100, 3), vec![0, 0, 1]);
+        // assert_eq!(flip_bits(0b110, 3), 0b011);
+        assert_eq!(flip_bits(0b1000, 4), 0b0001);
+        assert_eq!(flip_bits(0b1010, 4), 0b0101);
     }
 }
