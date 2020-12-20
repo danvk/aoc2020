@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use itertools::Itertools;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 struct Tile {
     id: u64,
     px: Vec<Vec<bool>>,
@@ -31,13 +31,17 @@ fn flip_bits(bits: u32, n: u32) -> u32 {
     (0..n).map(|i| ((bits & (1 << i)) >> i) << (n - 1 - i)).sum()
 }
 
+fn parse_grid(lines: &[&str]) -> Vec<Vec<bool>> {
+    lines.iter().map(|line| line.trim().chars().map(|c| c == '#').collect()).collect()
+}
+
 fn parse_tile(tile: &str) -> Tile {
     let mut lines = tile.lines();
     let title = lines.next().unwrap();
     let tile_cap = TILE_RE.captures(title).unwrap();
     let id: u64 = tile_cap[1].parse().unwrap();
 
-    let px: Vec<Vec<_>> = lines.map(|line| line.trim().chars().map(|c| c == '#').collect()).collect();
+    let px = parse_grid(&lines.collect_vec());
     let top = to_mask(&px[0]);
     let bottom = to_mask(px.last().unwrap());
     let left = to_mask(&px.iter().map(|row| row[0]).collect::<Vec<_>>());
@@ -88,6 +92,7 @@ fn possible_masks(tile: &Tile) -> HashSet<u32> {
 }
 
 enum Op {
+    Identity,
     FlipVert,
     FlipHoriz,
     Rot90,
@@ -95,13 +100,65 @@ enum Op {
     Rot270,
 }
 
-/*
-fn transform(tile: &Tile, op: &Op) -> Tile {
-    match op {
+fn rot90(px: &Vec<Vec<bool>>) -> Vec<Vec<bool>> {
+    let n = px.len();
+    let mut out = ((0..n).map(|y| vec![false; n])).collect_vec();
 
+    for (y, row) in px.iter().enumerate() {
+        for (x, v) in row.iter().enumerate() {
+            // n = 10
+            // (y, x)
+            // (0, 0) -> (0, 9)
+            // (0, 9) -> (9, 9)
+            // (9, 0) -> (0, 0)
+            // (9, 9) -> (9, 0)
+            out[x][n - 1 - y] = *v;
+        }
+    }
+
+    out
+}
+
+fn transform_tile(tile: &Tile, op: Op) -> Tile {
+    let n = tile.px.len() as u32;
+    let Tile {id, left, right, top, bottom, px: _} = *tile;
+    match op {
+        Op::Identity => tile.clone(),
+        Op::FlipVert => Tile {
+            id,
+            top: bottom,
+            bottom: top,
+            left: flip_bits(left, n),
+            right: flip_bits(right, n),
+            px: tile.px.iter().rev().map(|row| row.clone()).collect_vec(),
+        },
+        Op::FlipHoriz => Tile {
+            id,
+            top: flip_bits(top, n),
+            bottom: flip_bits(bottom, n),
+            left: right,
+            right: left,
+            px: tile.px.iter().map(
+                |row| row.iter().rev().map(|b| *b).collect_vec()
+            ).collect_vec(),
+        },
+        Op::Rot90 => Tile {
+            id,
+            top: flip_bits(left, n),
+            right: top,
+            bottom: flip_bits(right, n),
+            left: bottom,
+            px: rot90(&tile.px),
+        },
+        Op::Rot180 => transform_tile(&transform_tile(tile, Op::Rot90), Op::Rot90),
+        // TODO: I think this is a flip + rotate?
+        Op::Rot270 => transform_tile(&transform_tile(&transform_tile(tile, Op::Rot90), Op::Rot90), Op::Rot90),
     }
 }
-*/
+
+fn grid_to_str(px: &Vec<Vec<bool>>) -> String {
+    px.iter().map(|row| row.iter().map(|c| if *c { '#' } else { '.' }).collect::<String>()).join("\n")
+}
 
 fn index_tiles(tiles: &[Tile]) -> HashMap<u32, Vec<&Tile>> {
     let mut out: HashMap<u32, Vec<&Tile>> = HashMap::new();
@@ -206,5 +263,74 @@ mod tests {
         // assert_eq!(flip_bits(0b110, 3), 0b011);
         assert_eq!(flip_bits(0b1000, 4), 0b0001);
         assert_eq!(flip_bits(0b1010, 4), 0b0101);
+    }
+
+    #[test]
+    fn test_parse_grid() {
+        assert_eq!(
+            parse_grid(&r"..##.#
+            ##..#.
+            #...##
+            ####.#
+            ##.##.
+            ##...#".lines().collect_vec()),
+            vec![
+                vec![false, false, true, true, false, true],
+                vec![true, true, false, false, true, false],
+                vec![true, false, false, false, true, true],
+                vec![true, true, true, true, false, true],
+                vec![true, true, false, true, true, false],
+                vec![true, true, false, false, false, true],
+            ]
+        );
+    }
+
+    #[test]
+    fn test_rot() {
+        let px = parse_grid(
+            &r"#.#
+               #..
+               ##.".lines().collect_vec());
+        assert_eq!(grid_to_str(&px),
+            r"#.#
+              #..
+              ##.".replace(" ", "")
+        );
+        assert_eq!(grid_to_str(&rot90(&px)),
+            r"###
+              #..
+              ..#".replace(" ", "")
+        );
+    }
+
+    #[test]
+    fn test_transform_tile() {
+        let tile = parse_tile(
+            &r"Tile 123:
+               #.#
+               #..
+               ##.");
+        assert_eq!(tile.top, 5);
+        assert_eq!(tile.left, 7);
+
+        assert_eq!(transform_tile(&tile, Op::Identity), tile);
+        assert_eq!(transform_tile(&tile, Op::FlipHoriz), parse_tile(
+            &r"Tile 123:
+               #.#
+               ..#
+               .##"
+        ));
+        assert_eq!(transform_tile(&tile, Op::FlipVert), parse_tile(
+            &r"Tile 123:
+               ##.
+               #..
+               #.#"
+        ));
+        assert_eq!(transform_tile(&tile, Op::Rot90), parse_tile(
+            &r"Tile 123:
+               ###
+               #..
+               ..#"
+        ));
     }
 }
