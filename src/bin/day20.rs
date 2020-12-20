@@ -53,6 +53,40 @@ fn parse_tile(tile: &str) -> Tile {
     }
 }
 
+fn hashset(xs: &[u32]) -> HashSet<u32> {
+    xs.iter().map(|&x| x).collect()
+}
+
+// TODO: move this into utils.rs
+macro_rules! set(
+    { $($key:expr),+ } => {
+        {
+            let mut m = ::std::collections::HashSet::new();
+            $(
+                m.insert($key);
+            )+
+            m
+        }
+     };
+);
+
+fn masks(tile: &Tile) -> HashSet<u32> {
+    set!{tile.left, tile.right, tile.top, tile.bottom}
+}
+
+fn flipped_masks(tile: &Tile) -> HashSet<u32> {
+    set!{
+        flip_bits(tile.left, 10),
+        flip_bits(tile.right, 10),
+        flip_bits(tile.top, 10),
+        flip_bits(tile.bottom, 10)
+    }
+}
+
+fn possible_masks(tile: &Tile) -> HashSet<u32> {
+    masks(tile).union(&flipped_masks(tile)).map(|x| *x).collect()
+}
+
 enum Op {
     FlipVert,
     FlipHoriz,
@@ -69,16 +103,46 @@ fn transform(tile: &Tile, op: &Op) -> Tile {
 }
 */
 
+fn index_tiles(tiles: &[Tile]) -> HashMap<u32, Vec<&Tile>> {
+    let mut out: HashMap<u32, Vec<&Tile>> = HashMap::new();
+    for tile in tiles.iter() {
+        for mask in possible_masks(tile).iter() {
+            (*out.entry(*mask).or_insert(vec![])).push(tile);
+        }
+    }
+    out
+}
+
+fn possible_neighbors(tile: &Tile, index: &HashMap<u32, Vec<&Tile>>) -> Vec<&Tile> {
+    let out: Vec<&Tile> = vec![];
+    let ids = set!{tile.id};
+    for mask in masks(tile) {
+        for other in index.get(mask).unwrap_or(vec![]) {
+            if !ids.contains(other.id) {
+                out.push(other);
+                ids.insert(other.id);
+            }
+        }
+    }
+    out
+}
+
 fn process_file(path: &str) {
     let contents = std::fs::read_to_string(path).unwrap();
     let chunks = contents.split("\n\n").collect::<Vec<_>>();
 
     let tiles = chunks.iter().map(|chunk| parse_tile(chunk)).collect::<Vec<_>>();
 
-    let edges = tiles.iter().flat_map(|tile| vec![tile.left, tile.right, tile.top, tile.bottom]).collect::<HashSet<_>>();
+    // let edges = tiles.iter().flat_map(|tile| vec![tile.left, tile.right, tile.top, tile.bottom]).collect::<HashSet<_>>();
 
     println!("# tiles: {}", tiles.len());
-    println!("# distinct edges: {}", edges.len());
+    // println!("# distinct edges: {}", edges.len());
+
+    let mask_to_tiles = index_tiles(&tiles);
+
+    for (i, tile) in tiles.iter().enumerate() {
+        println!("{} {} -> {:?}", i, tile.id, possible_neighbors(&tile, &mask_to_tiles).iter().map(|t| t.id).collect_vec());
+    }
 }
 
 fn main() {
