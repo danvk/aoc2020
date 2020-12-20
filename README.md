@@ -25,6 +25,8 @@ Two issues I ran into today:
 - The borrow checker error that led to the signature above didn't show up in VS Code, even after restarting the Rust server. It only showed up as an error when I ran the program.
 - I'm getting quite annoyed at errors showing up after extremely long documentation strings. You have to scroll all the way down through several pages of text to see the error. And if you scroll even a pixel too far, the whole dialog goes away.
 
+There's no nice syntax for map or set literals (see [RFCs #542][542]) but it's pretty easy to write a function to make this more pleasant. You can also make a macro to do this, though the issue of `&str` vs. `String` seems worse there. Macros seem pretty cool! I'd like to see what else people use them for.
+
 ## Day 18
 
 One of my project ideas for learning some Rust was implementing an answer to [this question][cbc], a command-line calculator that ignores commas and dollar signs. I'd poked around at [pest][] a month ago, but it was a bit beyond my Rust abilities at the time. While a full parser generator is a bit overkill for this problem (certainly for part 1!) this seemed like a good opportunity to try again. I was pleasantly surprised that it was much easier to get it working this time. I must have learned some Rust in the past month!
@@ -296,3 +298,4 @@ rather than any of these:
 [cbc]: https://softwarerecs.stackexchange.com/q/75993/69199
 [pest]: https://pest.rs
 [pest-intro]: https://pest.rs/book/intro.html
+[542]: https://github.com/rust-lang/rfcs/issues/542
