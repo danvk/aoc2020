@@ -52,3 +52,25 @@ allergens = fish, dairy, soy
 
 Sample: 7 ingredients, 3 allergens
 Input: 200 ingredients, 8 allergens
+
+Sample after filtering out safe ingredients:
+
+1        mxmxvkd sqjhc -> {"dairy", "fish"}
+2 fvjkl  mxmxvkd       -> {"dairy"}
+3 fvjkl          sqjhc -> {"soy"}
+4        mxmxvkd sqjhc -> {"fish"}
+
+sample: 3 / 3 ingredients / allergens
+ input: 8 / 8 ingredients / allergens
+
+1/4 => F is not dairy or fish => F is soy
+2/S => S is not dairy => S is soy or fish
+
+bmrmhm,rkkrx,snhrpv,vflms,bqkndvb,zmb,qzkjrtl,bqtvr
+
+mxmxvkd contains dairy.
+sqjhc contains fish.
+fvjkl contains soy.
+
+mapping: [("dairy", "fvjkl"), ("fish", "mxmxvkd"), ("soy", "sqjhc")]
+answer: fvjkl,mxmxvkd,sqjhc
