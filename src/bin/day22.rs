@@ -5,32 +5,53 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use itertools::Itertools;
 
-fn play_game(p1cards: &Vec<i32>, p2cards: &Vec<i32>) -> Vec<i32> {
-    let mut p1cards = p1cards.clone();
-    let mut p2cards = p2cards.clone();
+#[derive(Clone)]
+struct GameState {
+    p1: Vec<i32>,
+    p2: Vec<i32>,
+}
 
-    while !p1cards.is_empty() && !p2cards.is_empty() {
-        let c1 = p1cards[0];
-        let c2 = p2cards[0];
-        if c1 > c2 {
-            p1cards.remove(0);
-            p2cards.remove(0);
-            p1cards.push(c1);
-            p1cards.push(c2);
-        } else {
-            p1cards.remove(0);
-            p2cards.remove(0);
-            p2cards.push(c2);
-            p2cards.push(c1);
-        }
-        // println!("p1: {:?}", p1cards);
-        // println!("p2: {:?}", p2cards);
+impl GameState {
+    fn is_done(&self) -> bool {
+        self.p1.is_empty() || self.p2.is_empty()
+    }
+}
+
+fn state_str(state: &GameState) -> String {
+    String::from("")
+}
+
+fn play_one_round(mut state: GameState) -> GameState {
+    if state.is_done() {
+        return state;
     }
 
-    if p1cards.is_empty() {
-        p2cards
+    let c1 = state.p1[0];
+    let c2 = state.p2[0];
+    if c1 > c2 {
+        state.p1.remove(0);
+        state.p2.remove(0);
+        state.p1.push(c1);
+        state.p1.push(c2);
     } else {
-        p1cards
+        state.p1.remove(0);
+        state.p2.remove(0);
+        state.p2.push(c2);
+        state.p2.push(c1);
+    }
+
+    state
+}
+
+fn play_game(mut state: GameState) -> Vec<i32> {
+    while !state.is_done() {
+        state = play_one_round(state);
+    }
+
+    if state.p1.is_empty() {
+        state.p2
+    } else {
+        state.p1
     }
 }
 
@@ -42,7 +63,7 @@ fn process_file(path: &str) {
     let p1cards = chunks[0].lines().skip(1).map(|line| line.parse::<i32>().unwrap()).collect_vec();
     let p2cards = chunks[1].lines().skip(1).map(|line| line.parse::<i32>().unwrap()).collect_vec();
 
-    let winning_hand = play_game(&p1cards, &p2cards);
+    let winning_hand = play_game(GameState { p1: p1cards, p2: p2cards });
     println!("Winning hand: {:?}", winning_hand);
     let n = winning_hand.len() as i32;
     println!("answer: {}", winning_hand.iter().enumerate().map(|(i, card)| (n - i as i32) * card).sum::<i32>());
