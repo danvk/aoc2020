@@ -15,10 +15,20 @@ impl GameState {
     fn is_done(&self) -> bool {
         self.p1.is_empty() || self.p2.is_empty()
     }
-}
 
-fn state_str(state: &GameState) -> String {
-    String::from("")
+    fn state_str(&self) -> String {
+        format!("{};{}",
+            self.p1.iter().map(|x| x.to_string()).join(","),
+            self.p2.iter().map(|x| x.to_string()).join(","),
+        )
+    }
+
+    fn print(&self) -> () {
+        println!("Player 1: {}\nPlayer 2: {}\n",
+            self.p1.iter().map(|x| x.to_string()).join(", "),
+            self.p2.iter().map(|x| x.to_string()).join(", "),
+        )
+    }
 }
 
 fn play_one_round(mut state: GameState) -> GameState {
@@ -44,8 +54,16 @@ fn play_one_round(mut state: GameState) -> GameState {
 }
 
 fn play_game(mut state: GameState) -> Vec<i32> {
+    let mut prev_states = HashSet::new();
     while !state.is_done() {
+        state.print();
+        let state_str = state.state_str();
+        if prev_states.contains(&state_str) {
+            println!("Same state as before! P1 wins!");
+            return state.p1;
+        }
         state = play_one_round(state);
+        prev_states.insert(state_str);
     }
 
     if state.p1.is_empty() {
@@ -63,7 +81,9 @@ fn process_file(path: &str) {
     let p1cards = chunks[0].lines().skip(1).map(|line| line.parse::<i32>().unwrap()).collect_vec();
     let p2cards = chunks[1].lines().skip(1).map(|line| line.parse::<i32>().unwrap()).collect_vec();
 
-    let winning_hand = play_game(GameState { p1: p1cards, p2: p2cards });
+    let state = GameState { p1: p1cards, p2: p2cards };
+
+    let winning_hand = play_game(state);
     println!("Winning hand: {:?}", winning_hand);
     let n = winning_hand.len() as i32;
     println!("answer: {}", winning_hand.iter().enumerate().map(|(i, card)| (n - i as i32) * card).sum::<i32>());
