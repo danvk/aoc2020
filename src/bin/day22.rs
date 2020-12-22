@@ -36,40 +36,66 @@ fn play_one_round(mut state: GameState) -> GameState {
         return state;
     }
 
-    let c1 = state.p1[0];
-    let c2 = state.p2[0];
-    if c1 > c2 {
-        state.p1.remove(0);
-        state.p2.remove(0);
-        state.p1.push(c1);
-        state.p1.push(c2);
+    let p1 = &mut state.p1;
+    let p2 = &mut state.p2;
+
+    let c1 = p1[0];
+    let c2 = p2[0];
+
+    // If both players have at least as many cards remaining in their deck as the value
+    // of the card they just drew, the winner of the round is determined by playing a
+    // new game of Recursive Combat (see below).
+    let round_winner;
+    if p1.len() as i32 >= c1 + 1 && p2.len() as i32 >= c2 + 1 {
+        // recursive combat
+        let recur_state = GameState {
+            p1: p1[1usize..=c1 as usize].iter().map(|c| *c).collect_vec(),
+            p2: p2[1usize..=c2 as usize].iter().map(|c| *c).collect_vec(),
+        };
+        // println!("recursing");
+        // recur_state.print();
+        let (who, _cards) = play_game(recur_state);
+        round_winner = who;
+    } else if c1 > c2 {
+        round_winner = 1;
     } else {
-        state.p1.remove(0);
-        state.p2.remove(0);
-        state.p2.push(c2);
-        state.p2.push(c1);
+        round_winner = 2;
+    }
+
+    if round_winner == 1 {
+        // println!("Player 1 wins this round");
+        p1.remove(0);
+        p2.remove(0);
+        p1.push(c1);
+        p1.push(c2);
+    } else {
+        // println!("Player 2 wins this round");
+        p1.remove(0);
+        p2.remove(0);
+        p2.push(c2);
+        p2.push(c1);
     }
 
     state
 }
 
-fn play_game(mut state: GameState) -> Vec<i32> {
+fn play_game(mut state: GameState) -> (i32, Vec<i32>) {
     let mut prev_states = HashSet::new();
     while !state.is_done() {
-        state.print();
+        // state.print();
         let state_str = state.state_str();
         if prev_states.contains(&state_str) {
-            println!("Same state as before! P1 wins!");
-            return state.p1;
+            // println!("Same state as before! P1 wins!");
+            return (1, state.p1);
         }
         state = play_one_round(state);
         prev_states.insert(state_str);
     }
 
     if state.p1.is_empty() {
-        state.p2
+        (2, state.p2)
     } else {
-        state.p1
+        (1, state.p1)
     }
 }
 
@@ -83,7 +109,8 @@ fn process_file(path: &str) {
 
     let state = GameState { p1: p1cards, p2: p2cards };
 
-    let winning_hand = play_game(state);
+    let (who, winning_hand) = play_game(state);
+    println!("Winner: player {}", who);
     println!("Winning hand: {:?}", winning_hand);
     let n = winning_hand.len() as i32;
     println!("answer: {}", winning_hand.iter().enumerate().map(|(i, card)| (n - i as i32) * card).sum::<i32>());
