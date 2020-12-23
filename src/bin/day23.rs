@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, fmt};
+use std::{collections::{HashMap, HashSet}, fmt, time::Instant};
 use std::env;
 use itertools::Itertools;
 
@@ -95,17 +95,42 @@ impl fmt::Display for Cups {
 }
 
 fn play_game(nums: Vec<i32>, num_rounds: usize) {
+    /*
+    let m = nums.iter().max().unwrap();
+    let mut v: Vec<i32> = Vec::with_capacity(1_000_000);
+    for n in &nums {
+        v.push(*n);
+    }
+    for n in (m+1)..=1_000_000 {
+        v.push(n);
+    }
+    println!("cups len: {}", v.len());
+    // naive: 12 hours
+
+    let mut cups = Cups { current: 0, cups: v };
+    */
     let mut cups = Cups { current: 0, cups: nums };
 
+    let now = Instant::now();
     for i in 1..=num_rounds {
         println!("-- move {}--", i);
         cups.play_one_round();
+        // let x = cups.index_of(1).unwrap();
+        // if i % 100 == 0 {
+        //     println!("{} two right of 1: {}, {}",
+        //         i,
+        //         cups.at(x as i32 + 1),
+        //         cups.at(x as i32 + 2),
+        //     );
+        // }
     }
+    let elapsed_ms = now.elapsed().as_millis();
+    println!("{} rounds in {}ms = {}ms/round", num_rounds, elapsed_ms, elapsed_ms as f64 / num_rounds as f64);
 
-    println!("-- final --");
-    println!("cups: {}", cups);
+    // println!("-- final --");
+    // println!("cups: {}", cups);
 
-    println!("answer: {}", cups.answer());
+    // println!("answer: {}", cups.answer());
 }
 
 fn main() {
@@ -127,3 +152,7 @@ mod tests {
     use super::*;
 
 }
+
+// ideas:
+// - use a better structure (vecdeque? linked list?)
+// - figure out a math-y way to do it
