@@ -1,100 +1,94 @@
 use std::{collections::{HashMap, HashSet}, fmt, time::Instant};
 use std::env;
+use aoc2020::set;
 use itertools::Itertools;
 
-#[derive(Clone)]
+// 162.99 promo rate, three months --> 212.99 after
+// cancelation fee is $15/month for remaining months of contract
+// can do install on January 8th
+// between 8 AM and 11 AM time slot (probably closer to 8, first slot of the day)
+// 574-360-7063
+// pin is 4268
+
 struct Cups {
-    cups: Vec<i32>,
+    // 0 is empty
+    nexts: Vec<usize>,
     current: usize,
 }
 
 impl Cups {
-    fn idx(&self, i: i32) -> usize {
-        // TODO: there's a euclid_rem method
-        let len = self.cups.len() as i32;
-        (((i % len) + len) % len) as usize
-    }
-
-    fn at(&self, i: i32) -> i32 {
-        self.cups[self.idx(i)]
-    }
-
     fn max_index(&self) -> usize {
-        self.cups.iter().position_max().unwrap()
+        self.nexts.len() - 1
     }
 
-    fn index_of(&self, i: i32) -> Option<usize> {
-        self.cups.iter().position(|&n| n == i)
+    fn remove(&mut self, i: usize) -> () {
+        self.nexts[i] = self.nexts[self.nexts[i]];
     }
 
-    fn remove_three_at(&mut self, i: usize) -> (i32, i32, i32) {
-        let mut p = self.idx(i as i32);
-        let c1 = self.cups.remove(p);
-        p = self.idx(p as i32);
-        let c2 = self.cups.remove(p);
-        p = self.idx(p as i32);
-        let c3 = self.cups.remove(p);
+    fn remove_three_after(&mut self, c0: usize) -> (usize, usize, usize) {
+        let c1 = self.nexts[c0];
+        let c2 = self.nexts[c1];
+        let c3 = self.nexts[c2];
+        let c4 = self.nexts[c3];
+        self.nexts[c0] = c4;
+
         (c1, c2, c3)
     }
 
-    fn play_one_round(&mut self) -> () {
-        println!("cups: {}", self);
-        let cur_val = self.cups[self.current as usize];
-        let (c1, c2, c3) = self.remove_three_at(self.current + 1);
-        println!("pick up: {}, {}, {}", c1, c2, c3);
-
-        let mut d_opt = None;
-        let min = *self.cups.iter().min().unwrap();
-        for i in 1..self.cups.len() as i32 {
-            let v = cur_val - i;
-            if v < min {
-                break;
-            }
-            if let Some(dest) = self.index_of(v) {
-                d_opt = Some(dest);
-                break;
-            }
-        }
-        if d_opt.is_none() {
-            d_opt = Some(self.max_index() as usize);
-        }
-        let d = d_opt.unwrap();
-        println!("destination: {}", self.cups[d]);
-
-        let nd = self.idx(d as i32 + 1);
-        self.cups.insert(nd, c3);
-        self.cups.insert(nd, c2);
-        self.cups.insert(nd, c1);
-
-        self.current = self.idx(self.index_of(cur_val).unwrap() as i32 + 1);
+    fn insert_after(&mut self, c0: usize, val: usize) -> () {
+        let old_next = self.nexts[c0];
+        self.nexts[c0] = val;
+        self.nexts[val] = old_next;
     }
 
-    fn answer(&self) -> String {
-        let i = self.index_of(1).unwrap();
-        (1..self.cups.len()).map(|d| self.at((i + d) as i32).to_string()).collect::<String>()
+    fn find_dest(&self, cur: usize, (c1, c2, c3): (usize, usize, usize)) -> usize {
+        // println!("find_dest({}, {:?})", cur, (c1, c2, c3));
+        let mut dest = cur - 1;
+        if dest <= 0 {
+            dest += self.nexts.len() - 1;
+        }
+
+        if dest != c1 && dest != c2 && dest != c3 {
+            return dest;
+        }
+
+        self.find_dest(dest, (c1, c2, c3))
+    }
+
+    // 30 minutes of long distance is $30
+    // unlimited is $42.99
+
+    fn play_one_round(&mut self) -> () {
+        println!("cups: {}", self);
+        let (c1, c2, c3) = self.remove_three_after(self.current);
+        println!("pick up: {}, {}, {}", c1, c2, c3);
+        let dest = self.find_dest(self.current, (c1, c2, c3));
+        println!("destination: {}", dest);
+
+        self.insert_after(dest, c3);
+        self.insert_after(dest, c2);
+        self.insert_after(dest, c1);
+
+        self.current = self.nexts[self.current];
     }
 }
 
 
 impl fmt::Display for Cups {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // TODO: rewrite w/ join / collect::<String>
-        let mut s = String::with_capacity(self.cups.len() * 2 + 2);
-        for (i, cup) in self.cups.iter().enumerate() {
-            if i > 0 {
-                s.push_str(" ");
-            }
-            if i == self.current {
-                s.push_str(&format!("({})", cup));
-            } else {
-                s.push_str(&format!("{}", cup));
-            }
+        let mut s = String::with_capacity(self.nexts.len() * 2 + 2);
+        s.push_str(&format!("({})", self.current));
+        let mut next = self.nexts[self.current];
+        while next != self.current {
+            s.push_str(" ");
+            s.push_str(&format!("{}", next));
+            next = self.nexts[next];
         }
         write!(f, "{}", s)
     }
 }
 
-fn play_game(nums: Vec<i32>, num_rounds: usize) {
+fn play_game(nums: Vec<usize>, num_rounds: usize) {
     /*
     let m = nums.iter().max().unwrap();
     let mut v: Vec<i32> = Vec::with_capacity(1_000_000);
@@ -109,7 +103,15 @@ fn play_game(nums: Vec<i32>, num_rounds: usize) {
 
     let mut cups = Cups { current: 0, cups: v };
     */
-    let mut cups = Cups { current: 0, cups: nums };
+    let mut nexts = vec![0; nums.len() + 1];
+    for (&v0, &v1) in nums.iter().zip(nums.iter().skip(1)) {
+        nexts[v0] = v1;
+    }
+    nexts[*nums.last().unwrap()] = *nums.first().unwrap();
+    println!("nexts: {:?}", nexts);
+
+    let mut cups = Cups { current: nums[0] as usize, nexts };
+    println!("Cups: {}", cups);
 
     let now = Instant::now();
     for i in 1..=num_rounds {
@@ -139,7 +141,7 @@ fn main() {
         panic!("Expected two argument, got {}: {:?}", args.len(), args);
     }
 
-    let cups = args[1].split("").filter(|&s| s != "").map(|c| c.parse::<i32>().unwrap()).collect_vec();
+    let cups = args[1].split("").filter(|&s| s != "").map(|c| c.parse::<usize>().unwrap()).collect_vec();
     let num_rounds = args[2].parse::<usize>().unwrap();
 
     play_game(cups, num_rounds);
