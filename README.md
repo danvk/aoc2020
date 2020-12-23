@@ -1,5 +1,17 @@
 # Notes on Advent of Code 2020
 
+## Day 23
+
+I implemented part 1 with `Vec`, thinking in the back of my mind that a circular linked list would make more sense. But with only 100 rounds, why?
+
+For part 2, I was vaguely hopeful that 1M cards and 10M rounds would still be small enough for my part 1 solution to work. I think it _would_ have, but only after ~10 hours. Interestingly, Jeremy reported that his Python implementation using a list would also have taken ~10 hours. I guess most of that time is big calls to `memcpy`, whether it's being done by Rust or Python. So it makes sense that they take about the same.
+
+I started reading about [Rust's `std::LinkedList`][ll] but it seemed pretty terrible. The "cursors" feature is experimental and many of the operations that would make you want to use a linked list, like `remove`, have APIs that force them to be O(N) instead of O(1). There were also some [blog posts][lists] and Stack Overflow questions that suggested that writing a linked list implementation is quite hard in Rust due to unclear ownership.
+
+That got me thinking about how I could make my own hacky linked list. I started with a `Vec` of the numbers and set up a parallel array to store the index of the next value in the list. Then I realized I didn't need the first array at all! The value at position N is the number after N in the list. Once I switched to this representation, all the game operations became completely trivial and I got the solution in 680ms.
+
+Apparently Axl switched to C for this one! I think knowing the [100 prisoners problem][100] made the permutation array representation more intuitive to me.
+
 ## Day 20
 
 Today was pretty rough! I think my whole approach was more or less fine, it was just a slog to implement all the rotations and flips. I wound up writing out all the transformations (flips + rotates) on paper to make sure I got them right. After yesterday's experience, I was being careful.
@@ -315,8 +327,6 @@ rather than any of these:
 [pest]: https://pest.rs
 [pest-intro]: https://pest.rs/book/intro.html
 [542]: https://github.com/rust-lang/rfcs/issues/542
-
-
-
-
-
+[ll]: https://doc.rust-lang.org/std/collections/struct.LinkedList.html
+[lists]: https://rust-unofficial.github.io/too-many-lists/
+[100]: https://en.wikipedia.org/wiki/100_prisoners_problem
