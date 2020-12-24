@@ -99,19 +99,18 @@ fn next_day(floor: TileFloor) -> TileFloor {
     let mut next: TileFloor = HashMap::new();
     for (pos, &v) in floor.iter() {
         if v {
-            // Any black tile with zero or more than 2 black tiles immediately adjacent to it is flipped to white.
-            let nn = num_neighbors(&floor, pos);
-            if nn == 2 || nn > 2 {
-                next.insert(*pos, true);
-            } else {
-                next.insert(*pos, false);
-            }
-
-            for n in neighbors(pos) {
-                if !*floor.get(&n).unwrap_or(&false) && !next.contains_key(&n) {
-                    // Any white tile with exactly 2 black tiles immediately adjacent to it is flipped to black.
-                    next.insert(*pos, num_neighbors(&floor, &n) == 2);
-                }
+            for n in neighbors(pos).iter().chain(vec![*pos].iter()) {
+                let nn = num_neighbors(&floor, n);
+                let v = *floor.get(n).unwrap_or(&false);
+                let nv = match v {
+                    // Any black tile with zero or more than 2 black tiles immediately
+                    // adjacent to it is flipped to white.
+                    true => !(nn == 0 || nn > 2),
+                    // Any white tile with exactly 2 black tiles immediately adjacent
+                    // to it is flipped to black.
+                    false => nn == 2,
+                };
+                next.insert(*n, nv);
             }
         }
     }
@@ -210,12 +209,26 @@ mod tests {
         }, &(0, 0)), 4);
     }
 
+    #[test]
+    fn test_next_day() {
+        assert_eq!(next_day(map!{(0, 0) => true}), map!{(0, 0) => false});
+        assert_eq!(
+            next_day(map!{
+                (0, 0) => true
+            }),
+            map!{
+                (0, 0) => false
+            }
+        );
+    }
+
 //  y NW, W, SW, E, E
 // -1 -1 0 1 2 3 4
 //  0  -1 0 1 2 3 4
 //  1 -1 0 1 2 3 4
 //  2  -1 0 1 2 3 4
 //  3 -1 0 1 2 3 4
+
 }
 
 // ideas:
