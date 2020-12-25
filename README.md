@@ -13,7 +13,7 @@ The [global stats for 2020][stats2020] would seem to bear this out. As of 8:00 A
 
 ## Day 24
 
-The only tricky part here was representing the hex grid and avoiding off-by-one errors. I keep getting tripped up by `-1 % 2 == -1`.
+The only tricky part here was representing the hex grid and avoiding off-by-one errors. I keep getting tripped up by `-1 % 2 == -1`. I learned about Rust's `chain` today, which is a handy way to chain two iterators together. I used this to iterate over a cell _and_ its neighbors.
 
 ## Day 23
 
