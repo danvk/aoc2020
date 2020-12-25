@@ -1,5 +1,20 @@
 # Notes on Advent of Code 2020
 
+## Day 25
+
+Just like last year, day 25 was an easy one-parter. I had fun doing AoC this year and certainly learned a lot of Rust! But it felt a _lot_ easier than last year's. I kept expecting it to get hard and, for the most part, it didn't. These were the only days that required much thought & care:
+
+- Day 13: bus arrival times
+- Day 19: a/b message parsing
+- Day 20: solving a puzzle w/ rotation & flips
+- Day 23: crab cups
+
+The [global stats for 2020][stats2020] would seem to bear this out. As of 8:00 AM, ~6,500 people have collected all 50 stars, whereas even now [only ~3,000][stats2019] have collected all 50 stars for the 2019 puzzles. There were more who started AoC this year, but even the ratios show the change: ~4.5% of users who collected both gold stars on day 1 have already collected the 50th star this year, whereas for last year's it's still only 3%.
+
+## Day 24
+
+The only tricky part here was representing the hex grid and avoiding off-by-one errors. I keep getting tripped up by `-1 % 2 == -1`.
+
 ## Day 23
 
 I implemented part 1 with `Vec`, thinking in the back of my mind that a circular linked list would make more sense. But with only 100 rounds, why?
@@ -62,8 +77,6 @@ One of my project ideas for learning some Rust was implementing an answer to [th
 There's a lot of macro magic involved in Pest. It works, but one downside is that you completely lose the types in your editor:
 
 ![unknown type](screenshots/pest-unknown.png)
-
-
 
 ## Day 17
 
@@ -330,3 +343,5 @@ rather than any of these:
 [ll]: https://doc.rust-lang.org/std/collections/struct.LinkedList.html
 [lists]: https://rust-unofficial.github.io/too-many-lists/
 [100]: https://en.wikipedia.org/wiki/100_prisoners_problem
+[stats2020]: https://adventofcode.com/2020/stats
+[stats2019]: https://adventofcode.com/2019/stats
