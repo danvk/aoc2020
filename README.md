@@ -49,7 +49,7 @@ I half expected my part one solution to work for part 2, but I think it would re
 
 I thought about implementing some sort of lookahead to ensure that each instantiation of a rule consumed at least one character. But then I looked at the recursive rules and realized that there was a much simpler pattern. You need some 42s, and then a smaller number of 31s.
 
-At this point I felt pretty confused! I flet like I'd figured it out, but couldn't see how their matching worked out for the sample. I kept getting a smaller number of matches.
+At this point I felt pretty confused! I felt like I'd figured it out, but couldn't see how their matching worked out for the sample. I kept getting a smaller number of matches.
 
 Eventually I tracked it down to a bug in my code that found all the strings that matched a rule. I'd changed a `pieces[0]` to `pieces.pop()`, which had the effect of permuting some of the matches. It didn't throw me off enough to prevent the key insight to solve the problem (rules 31 and 42 match disjoint strings of the same length) but did give me confusingly-wrong answers.
 
@@ -128,7 +128,7 @@ Switching from a `HashMap` to a long `Vec` had a bigger impact on performance, g
 
 ## Day 14
 
-This one wasn't very challenging, just had to work it out and get all the bit shifting and masking right. I used a loop from 0..2.pow(n) to iterate over all possible combinations for the "floating" bits in part 2. I was wondering if Axl would come up with some Rust standard library function for this, but apparently not.
+This one wasn't very challenging, just had to work it out and get all the bit shifting and masking right. I used a loop from `0..2.pow(n)` to iterate over all possible combinations for the "floating" bits in part 2. I was wondering if Axl would come up with some Rust standard library function for this, but apparently not.
 
 One thing I was surprised by in Rust: there's a big distinction between an enum, which is a type, and a _variant_ of the enum, which is not. So while I can declare:
 
@@ -244,8 +244,6 @@ Iterating from short subsequences to long makes a huge time difference, even tho
     Time: 2961ms
     Time: 7ms
 
-
-
 ## Day 8
 
 Our first problem involving implementing a computer. Switching from a struct:
@@ -267,7 +265,7 @@ enum Op {
 }
 ```
 
-moved more logic into the parsing but simplified everything downstream. It does feel odd to me that I can't name the parameters in each case of the enum (`arg: i32` instead of just `i32`).
+moved more logic into the parsing but simplified everything downstream. It does feel odd to me that I can't name the parameters in each case of the enum (`arg: i32` instead of just `i32`). _Update: Axel tells me that I can!_
 
 I learned about `filter_map`, which combines `map` with unwrapping `Option`s. This seems great, but I haven't been able to use it yet because I usually want to unwrap `Result`s.
 
