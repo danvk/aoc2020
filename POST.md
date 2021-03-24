@@ -4,12 +4,14 @@ I learned about the Advent of Code in mid-December of 2019. I did the puzzles in
 
 Forty nine puzzles later, I enjoyed the experience! Here are my high level takeaways:
 
-- This is a _great_ way to learn a language! Not just the sequence of puzzles of increasing difficulty, but also that there are people proficient in the language solving the same problems. After day 3 I looked on r/adventofcode for people who had posted Rust solutions. I thought Axl Lind's looked particularly clean and I learned a lot about idiomatic Rust from reading it. After that, my pattern was to solve the problem myself, then go look at how Axel solved it. This worked great, except for [the one day he solved in C++][axl-cpp] instead! I think next year I'll use AoC as an opportunity to learn some Go.
-- Rust is an interesting language with lots of great ideas. I'd choose it over C++ for a project in its domain any day. But there are many things about it that are just annoying (see below). For work that doesn't require a systems language, I'd rather use Python or TypeScript. And for writing command line programs, I suspect I'll prefer Go.
-- This year's Advent of Code was too easy. I kept waiting for it to get hard and it never did. I missed how last year's puzzles built on one another (the IntCode computer appeared in many of them). This year's were all independent. The [global stats][stats2020] would seem to bear this out: over 12,000 people collected all 50 stars in 2020, whereas [only ~3,000][stats2019] did in 2019. There were ~50% more people who completed day 1 this year, so growth alone can't account for the 4x increase.
-- Two of my coworkers did the Advent of Code this year and we set up a private leaderboard. This was good motivation to get the puzzles solved quickly. Being on the east coast made it hard to compete on the _global_ leaderboard, particularly for later days, but I'm tempted to adjust my sleep schedule to do this next year!
+- **This is a _great_ way to learn a language!** Not just the sequence of puzzles of increasing difficulty, but also that there are people proficient in the language solving the same problems. After day 3 I looked on r/adventofcode for people who had posted Rust solutions. I thought Axl Lind's looked particularly clean and I learned a lot about idiomatic Rust from reading it. After that, my pattern was to solve the problem myself, then go look at how Axel solved it. This worked great, except for [the one day he solved in C++][axl-cpp] instead! I think next year I'll use AoC as an opportunity to learn some Go.
+- **Rust is an interesting language with lots of great ideas.** I'd choose it over C++ for a project in its domain any day. But there are many things about it that are just annoying (see below). For work that doesn't require me to work at such a low level, I'd rather use Python or TypeScript. And for writing command line programs, I suspect I'll prefer Go.
+- **This year's Advent of Code was too easy.** I kept waiting for it to get hard and it never did. I missed how last year's puzzles built on one another (the IntCode computer appeared in many of them). This year's were all independent. The [global stats][stats2020] would seem to bear this out: over 12,000 people collected all 50 stars in 2020, whereas [only ~3,000][stats2019] did in 2019. There were ~50% more people who completed day 1 this year, so growth alone can't account for the 4x increase.
+- **Private leaderboards are fun but dangerous** Two of my coworkers did the Advent of Code this year and we set up a private leaderboard. This was good motivation to get the puzzles solved quickly. Being on the east coast made it hard to compete on the _global_ leaderboard, particularly for later days, but I'm tempted to adjust my sleep schedule to do this next year!
 
-So what are my impressions of Rust? While I mostly work in TypeScript these days, I spent the better chunk of eight years at Google from 2006–2014 working in C++. So this level of programming is at least somewhat comfortable to me, even if I'm… rusty.
+So what about Rust? While I [mostly work in TypeScript these days][ets], I spent the better chunk of eight years at Google from 2006–2014 working in C++. So this level of programming is at least somewhat comfortable to me, even if I'm… rusty.
+
+Here were a few things that struck me about the language. Day-by-day notes on the puzzles follow below.
 
 - While it stopped being an issue after day 1, I still find the Rust project structure (with `lib` and `bin`) pretty baffling. I wanted my project to be mostly binaries with a few shared modules between them. After much flailing, I wound up with something that worked. But I'm still mystified as to when I have to write `use aoc2020::util;` (the package name) vs. being able to write `use super::util;` (as in [rusty boggle][])
 - Rust iterators are neat! And I hear they're efficient, too. This was one of the main things I learned from reading Axel's code. I started relying on them more and more over the course of this year's AoC.
@@ -30,6 +32,8 @@ So what are my impressions of Rust? While I mostly work in TypeScript these days
 
 #### Day 1: Report Repair
 
+[problem](https://adventofcode.com/2020/day/1) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day1.rs)
+
 I still find Rust's module system incomprehensible.
 
 The issue this time turned out to be that I needed to import my util library as:
@@ -44,6 +48,8 @@ rather than any of these:
 
 #### Day 2: Password Philosophy
 
+[problem](https://adventofcode.com/2020/day/2) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day2.rs)
+
 First time using regexes in Rust. Overall it seems... mostly reasonable? I got thrown off by a few things:
 
 1. `.captures()[0]` is the full match, and `.captures()[1]` is the first capture.
@@ -53,7 +59,9 @@ Also first time using `HashMap`, though in retrospect I only did this because I 
 
 Indexing a string is also [pretty annoying][2]. I suppose this is annoyingingess that's hidden in other languages by their being slow, due to Unicode.
 
-#### Day 3: Toboggan Trajectory and Day 4: Passport Processing
+#### Day 4: Passport Processing
+
+[problem](https://adventofcode.com/2020/day/4) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day4.rs)
 
 Rust is feeling… kind of annoying! My usual procedure for fixing errors is throwing `.unwrap()`, `&`, `String::from()` and `into_iter()` into the expression until it works.
 
@@ -65,11 +73,15 @@ The `lazy_static!` construct seems to break inference in vscode when you use it 
 
 #### Day 5: Binary Boarding
 
+[problem](https://adventofcode.com/2020/day/5)
+
 I was feeling some social pressure to get out the door this morning, so I just did this one with find/replace, `sort`, `bc` and a spreadsheet.
 
     (echo 'ibase=2'; cat inputs/day5.txt | perl -pe 's/B/1/g; s/F/0/g; s/R/1/g; s/L/0/g;' | sort) | bc | pbcopy
 
 #### Day 6: Custom Customs
+
+[problem](https://adventofcode.com/2020/day/6) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day6.rs)
 
 I was able to reuse the chunking code from day 4 to make short work of this.
 
@@ -78,6 +90,8 @@ I'm still puzzled at why it's so difficult to factor out functions that work wit
 I looked for a functional way to do "count by" on the characters in a string but wasn't able to find anything.
 
 #### Day 8: Handheld Halting
+
+[problem](https://adventofcode.com/2020/day/8) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day8.rs)
 
 Our first problem involving implementing a computer. Switching from a struct:
 
@@ -103,6 +117,8 @@ moved more logic into the parsing but simplified everything downstream. It does 
 I learned about `filter_map`, which combines `map` with unwrapping `Option`s. This seems great, but I haven't been able to use it yet because I usually want to unwrap `Result`s.
 
 #### Day 9: Encoding Error
+
+[problem](https://adventofcode.com/2020/day/9) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day9.rs)
 
 Got tripped up a bit by [`.combinations()`][combinations] not working as I'd expected:
 
@@ -138,6 +154,8 @@ Iterating from short subsequences to long makes a huge time difference, even tho
 
 #### Day 10: Adapter Array
 
+[problem](https://adventofcode.com/2020/day/10) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day10.rs)
+
 Part two was the first puzzle where brute force was too slow. My first instinct was to do the search from both sides, to `sqrt` the runtime. But getting the join condition just right is tricky. Then I realized there are some joltages that you _have_ to go through. So those are the natural breakpoints. From there it was a fight with off-by-one errors.
 
 One thing I find confusing about Rust iterators... why is the type of `x` here `&i32` and not just `i32`?
@@ -146,6 +164,8 @@ One thing I find confusing about Rust iterators... why is the type of `x` here `
     jolts.iter().map(|x| x);
 
 #### Day 11: Seating System
+
+[problem](https://adventofcode.com/2020/day/11) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day11.rs)
 
 My code for part 1 worked just great on the sample code, but produced an incorrect answer on my input. A bug! These tend to be quite frustrating with AoC since you only know the correct output for what they give you. I tried a few different things but to no avail. My unit tests were passing but I was producing the wrong answer.
 
@@ -160,15 +180,15 @@ I learned a few things from [Axel's code for Day 11][axl-11]:
 - He also wrote out an eight-element tuple of directions (`DS`). This was a source of confusing bugs for me, as I had a duplicate / missing entry in mine.
 - Axel tends to separate his `as i64` from his `as usize`, the latter only appearing at the place where you index into an array.
 - Using `|&&x|` in a lambda is OK.
-- Apparently you can do this (`i` and `j` being parameters):
-
-    let (mut i, mut j) = (i as i64, j as i64);
+- Apparently you can do this (`i` and `j` being parameters): `let (mut i, mut j) = (i as i64, j as i64);`
 
 It's not always clear to me when you need to write `.iter()` before `.map()` and when you can just write `.map()`. Or when you need to write `.collect()`. Why do I have to `.collect()` an iterator of `String`s before calling `join()`?
 
 You can use `use EnumType::*` to drop the need to qualify its contituents.
 
 #### Day 12: Rain Risk
+
+[problem](https://adventofcode.com/2020/day/12) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day12.rs)
 
 Hopefully continuing the pattern of easy puzzles on the weekend. I woke up early and wanted to do AoC, so this wound up being my best result so far (17726 / 14724 — tough to get a top result on the east coast!).
 
@@ -179,6 +199,8 @@ A few things of note:
 - Storing the waypoint delta, instead of its absolute position, wound up being a good choice.
 
 #### Day 13: Shuttle Search
+
+[problem](https://adventofcode.com/2020/day/13) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day13.rs)
 
 Relieved that I didn't overflow `u64` today! My modular math is quite rusty (I took college Algebra in… 2003?) so while I was pretty confident there was a canonical solution to a system of equations over different moduli, I didn't remember exactly what it was. I was pretty confident that I could solve subproblems by figuring out what the number was mod p1*p2 if p1 and p2 were relatively prime.
 
@@ -197,6 +219,8 @@ Apparently this problem is just the [Chinese Remainder Theorem][crt]. One other 
 
 #### Day 14: Docking Data
 
+[problem](https://adventofcode.com/2020/day/14) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day14.rs)
+
 This one wasn't very challenging, just had to work it out and get all the bit shifting and masking right. I used a loop from `0..2.pow(n)` to iterate over all possible combinations for the "floating" bits in part 2. I was wondering if Axl would come up with some Rust standard library function for this, but apparently not.
 
 One thing I was surprised by in Rust: there's a big distinction between an enum, which is a type, and a _variant_ of the enum, which is not. So while I can declare:
@@ -214,6 +238,8 @@ Another thing I learned: to ignore a field while destructuring / matching, you a
     Op::Mask { ones, zeros: _, xs }
 
 #### Day 15: Rambunctious Recitation
+
+[problem](https://adventofcode.com/2020/day/15) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day15.rs)
 
 Slightly annoying to avoid off-by-ones, but after that this was quite fast. I was happy that you can get away only storing the last round for each number, as opposed to the previous two or N. I wonder if the 30,000,000 rounds in step 2 is a problem if you implement this in a slow way, or in Python? It took ~2 secs with Rust:
 
@@ -235,6 +261,8 @@ You read everywhere that Rust's default hasher for HashMap is "known to be slow 
 Switching from a `HashMap` to a long `Vec` had a bigger impact on performance, getting me down to 688ms.
 
 #### Day 17: Conway Cubes
+
+[problem](https://adventofcode.com/2020/day/17) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day17.rs)
 
 The trick I learned [last year][2019] of representing grids using maps from coordinate tuples to values made this one a lot easier! Almost no change from part 1 to part 2. The only trick was making sure you considered the next state for all _neighbors_, not all cells.
 
@@ -263,6 +291,8 @@ I don't know if there's any downside to representing the directions this way vs.
 
 #### Day 18: Operation Order
 
+[problem](https://adventofcode.com/2020/day/18) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day18.rs)
+
 One of my project ideas for learning some Rust was implementing an answer to [this question][cbc], a command-line calculator that ignores commas and dollar signs. I'd poked around at [pest][] a month ago, but it was a bit beyond my Rust abilities at the time. While a full parser generator is a bit overkill for this problem (certainly for part 1!) this seemed like a good opportunity to try again. I was pleasantly surprised that it was much easier to get it working this time. I must have learned some Rust in the past month!
 
 There's a lot of macro magic involved in Pest. It works, but one downside is that you completely lose the types in your editor:
@@ -270,6 +300,8 @@ There's a lot of macro magic involved in Pest. It works, but one downside is tha
 ![unknown type](screenshots/pest-unknown.png)
 
 #### Day 19: Monster Messages
+
+[problem](https://adventofcode.com/2020/day/19) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day19.rs)
 
 I half expected my part one solution to work for part 2, but I think it would require not being greedy.
 
@@ -298,6 +330,8 @@ There's no nice syntax for map or set literals (see [RFCs #542][542]) but it's p
 
 #### Day 20: Jurassic Jigsaw
 
+[problem](https://adventofcode.com/2020/day/20) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day20.rs)
+
 Today was pretty rough! I think my whole approach was more or less fine, it was just a slog to implement all the rotations and flips. I wound up writing out all the transformations (flips + rotates) on paper to make sure I got them right. After yesterday's experience, I was being careful.
 
 The one clever thing I did was checking how many possible neighbors there were for each cell. For both the sample and my input, there were exactly four tiles with only two possible neighbors. Since part one only required the product of the tile IDs in the corners, that was enough. I didn't have to solve the puzzle to get my star. So I beat Jack and Jeremy to the first star!
@@ -314,6 +348,8 @@ Rust notes:
 
 #### Day 23: Crab Cups
 
+[problem](https://adventofcode.com/2020/day/23) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day23.rs)
+
 I implemented part 1 with `Vec`, thinking in the back of my mind that a circular linked list would make more sense. But with only 100 rounds, why?
 
 For part 2, I was vaguely hopeful that 1M cards and 10M rounds would still be small enough for my part 1 solution to work. I think it _would_ have, but only after ~10 hours. Interestingly, Jeremy reported that [his Python implementation][jeremy23] using a list would also have taken ~10 hours. I guess most of that time is big calls to `memcpy`, whether it's being done by Rust or Python. So it makes sense that they take about the same.
@@ -326,9 +362,13 @@ Apparently Axl switched to C for this one! I think knowing the [100 prisoners pr
 
 #### Day 24: Lobby Layout
 
+[problem](https://adventofcode.com/2020/day/24) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day24.rs)
+
 The only tricky part here was representing the hex grid and avoiding off-by-one errors. I keep getting tripped up by `-1 % 2 == -1`. I learned about Rust's `chain` today, which is a handy way to chain two iterators together. I used this to iterate over a cell _and_ its neighbors.
 
 #### Day 25: Combo Breaker
+
+[problem](https://adventofcode.com/2020/day/25) / [solution](https://github.com/danvk/aoc2020/blob/master/src/bin/day25.rs)
 
 Just like last year, day 25 was an easy one-parter. I had fun doing AoC this year and certainly learned a lot of Rust! But it felt a _lot_ easier than last year's. I kept expecting it to get hard and, for the most part, it didn't. These were the only days that required much thought & care:
 
@@ -371,3 +411,4 @@ Next year I think I'll do it in [Go][go]!
 [crt]: https://en.wikipedia.org/wiki/Chinese_remainder_theorem
 [jeremy23]: https://github.com/docmarionum1/adventofcode/blob/main/2020/23/Crab%20Cups.ipynb
 [go]: https://golang.org/
+[ets]: https://effectivetypescript.com/
